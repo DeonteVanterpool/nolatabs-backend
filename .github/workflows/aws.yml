@@ -35,7 +35,7 @@ env:
   ECR_REPOSITORY: nolatabs/nolatabs           # set this to your Amazon ECR repository name
   ECS_SERVICE: nolatabs-webserver-service                 # set this to your Amazon ECS service name
   ECS_CLUSTER: nolatabs                 # set this to your Amazon ECS cluster name
-  ECS_TASK_DEFINITION: nolatabs # set this to the path to your Amazon ECS task definition
+  ECS_TASK_DEFINITION: nolatabs:1 # set this to the path to your Amazon ECS task definition
                                                # file, e.g. .aws/task-definition.json
   CONTAINER_NAME: 076224130336.dkr.ecr.us-east-1.amazonaws.com/nolatabs/nolatabs@sha256:99b9b3b5eb80fe1a4eaf4fd1fc67c183eff4d47475d5e4cf58d6949da880be3a           # set this to the name of the container in the
                                                # containerDefinitions section of your task definition
