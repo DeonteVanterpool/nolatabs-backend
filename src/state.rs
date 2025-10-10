@@ -5,7 +5,7 @@ use crate::models;
 
 #[derive(Debug, Clone)]
 pub struct AppState {
-    auth: firebase_auth_sdk::Auth,
+    // auth: firebase_auth_sdk::Auth,
 }
 
 impl AppState {}
