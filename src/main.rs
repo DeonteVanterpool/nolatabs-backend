@@ -41,7 +41,7 @@ async fn main() {
     let env = Environment::new();
 
     // build our application with a route
-    let app = Router::new();
+    let app = Router::new().route("/ping", get(handlers::status::ping));
         // .route("/subcription", post(handlers::post_subcription))
 
     // run our app with hyper, listening globally on port 3000
