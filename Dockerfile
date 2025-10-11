@@ -1,11 +1,12 @@
-FROM rust:latest as builder
+FROM rust:alpine as builder
+RUN apk add --no-cache musl-dev
 WORKDIR /usr/src/nolatabs-backend
 COPY . .
-RUN cargo install --path .
+RUN cargo build --release
 
-FROM alpine:3.22
-RUN apk update && apk upgrade && rm -rf /var/lib/apt/lists/* # && apt-get install -y extra-runtime-dependencies 
-COPY --from=builder /usr/local/cargo/bin/nolatabs-backend /usr/local/bin/nolatabs-backend
+FROM alpine:latest
+RUN apk update && apk upgrade # && rm -rf /var/lib/apt/lists/* && apt-get install -y extra-runtime-dependencies 
+COPY --from=builder /usr/src/nolatabs-backend/target/release/nolatabs-backend .
 EXPOSE 3892
 CMD ["nolatabs-backend"]
 
