@@ -6,7 +6,7 @@ use firebase_auth::FirebaseUser;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
-struct SignupPayload {
+pub struct SignupPayload {
     name: String,
 }
 pub async fn signup(
