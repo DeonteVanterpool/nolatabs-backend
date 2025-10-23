@@ -38,7 +38,6 @@ impl Environment {
             firebase_project_id: env::var("FIREBASE_PROJECT_ID").expect(
                 "Could not find FIREBASE_PROJECT_ID environment variable anywhere. Try putting it in .env",
             ),
-
         }
     }
 }
