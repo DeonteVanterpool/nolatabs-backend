@@ -1,7 +1,7 @@
-FROM rust:alpine as builder
+FROM rust:alpine AS builder
 WORKDIR /usr/src/nolatabs-backend
 COPY . .
-RUN apk add --no-cache musl-dev openssl-dev
+RUN apk add --no-cache musl-dev openssl-libs-static
 RUN cargo build --release
 
 FROM alpine:latest
