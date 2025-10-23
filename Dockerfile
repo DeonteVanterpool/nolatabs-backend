@@ -5,7 +5,7 @@ RUN apk add --no-cache musl-dev
 RUN cargo build --release
 
 FROM alpine:latest
-RUN apk add --no-cache ca-certificates
+RUN apk add --no-cache ca-certificates openssl
 RUN apk update && apk upgrade # && rm -rf /var/lib/apt/lists/* && apt-get install -y extra-runtime-dependencies 
 WORKDIR /app
 COPY --from=builder /usr/src/nolatabs-backend/target/release/nolatabs-backend /app/
