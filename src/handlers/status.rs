@@ -1,5 +1,3 @@
-use axum::Json;
-
-pub async fn ping() -> Json<String>{
-    return Json::from(String::from("Pong!"));
+pub async fn ping() -> String {
+    return String::from("Pong!");
 }

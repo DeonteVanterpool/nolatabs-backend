@@ -1,11 +1,17 @@
-use futures::future;
-use std::error::Error;
+use sqlx::PgPool;
 
-use crate::models;
+use crate::repository::user::UserRepository;
 
 #[derive(Debug, Clone)]
 pub struct AppState {
     // auth: firebase_auth_sdk::Auth,
+    pub user_repository: UserRepository,
 }
 
-impl AppState {}
+impl AppState {
+    pub fn new(pool: PgPool) -> Self {
+        return AppState {
+            user_repository: UserRepository::new(pool)
+        }
+    }
+}
