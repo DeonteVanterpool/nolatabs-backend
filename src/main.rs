@@ -1,5 +1,4 @@
 use crate::state::AppState;
-use firebase_auth::{FirebaseAuth, FirebaseAuthState};
 use aws_config::BehaviorVersion;
 use axum::{
     Router,
@@ -7,14 +6,15 @@ use axum::{
     routing::{get, post},
 };
 use dotenvy::dotenv;
+use firebase_auth::{FirebaseAuth, FirebaseAuthState};
 use sqlx::pool::PoolOptions;
-use std::{env, sync::Arc};
 use std::future::IntoFuture;
+use std::{env, sync::Arc};
 
 pub mod handlers;
+pub mod logic;
 pub mod models;
 pub mod repository;
-pub mod logic;
 pub mod state;
 pub mod tests;
 
@@ -53,7 +53,10 @@ async fn main() {
 
     println!("db_url: {}...", &env.database_url[..13]);
     println!("fb_id: {}...", &env.firebase_project_id[..5]);
-    let pool = PoolOptions::new().connect(&env.database_url).await.unwrap();
+    let pool = PoolOptions::new().connect(&env.database_url).await.expect(
+        &format!("Could not connect to the database. Please check your DATABASE_URL environment variable: {}",
+        &env.database_url
+    ));
     let firebase_auth = Arc::new(FirebaseAuth::new(&env.firebase_project_id).await);
 
     // build our application with a route
