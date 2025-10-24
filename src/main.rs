@@ -51,6 +51,8 @@ async fn main() {
     let client = aws_sdk_s3::Client::new(&config);
     let env = Environment::initialize();
 
+    println!("db_url: {}...", &env.database_url[..13]);
+    println!("fb_id: {}...", &env.firebase_project_id[..5]);
     let pool = PoolOptions::new().connect(&env.database_url).await.unwrap();
     let firebase_auth = Arc::new(FirebaseAuth::new(&env.firebase_project_id).await);
 
