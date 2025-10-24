@@ -1,5 +1,4 @@
 use crate::state::AppState;
-use urlencoding::encode;
 use firebase_auth::{FirebaseAuth, FirebaseAuthState};
 use aws_config::BehaviorVersion;
 use axum::{
@@ -33,9 +32,9 @@ impl Environment {
         }
 
         Self {
-            database_url: encode(env::var("DATABASE_URL").expect(
+            database_url: env::var("DATABASE_URL").expect(
                 "Could not find DATABASE_URL environment variable anywhere. Try putting it in .env",
-            )),
+            ),
             firebase_project_id: env::var("FIREBASE_PROJECT_ID").expect(
                 "Could not find FIREBASE_PROJECT_ID environment variable anywhere. Try putting it in .env",
             ),

@@ -2205,7 +2205,6 @@ dependencies = [
  "sqlx",
  "tokio",
  "tracing-subscriber",
- "urlencoding",
 ]
 
 [[package]]
