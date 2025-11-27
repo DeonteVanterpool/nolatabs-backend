@@ -1,0 +1,65 @@
+openapi: 3.0.4
+info:
+  title: Sample API
+  description: Optional multiline or single-line description in [CommonMark](http://commonmark.org/help/) or HTML.
+  version: 0.1.9
+
+servers:
+  - url: http://nolatabs.com/api/v1
+    description: API server for NolaTabs application (version 1)
+  - url: http://staging-nolatabs.example.com
+    description: Internal staging server for testing
+
+paths:
+  /ping:
+    get:
+      summary: Pings the server to check if it is alive.
+      responses:
+        "200":
+          description: Pong response
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: pong
+  /auth/signup:
+    post:
+      security:
+        - bearerAuth: []
+      summary: Endpoint for creating a user.
+      description: This creates a user in the backend for NolaTabs. This is a *prerequisite* for accessing any endpoints that may require authentication. The associated user must have been signed up using Firebase authentication already. This expects a Firebase ID token from the client side.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupResponse'
+
+components:
+  schemas:
+    SignupRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        username:
+          type: string
+      example: { email: "johndoe@example.com" , username: "John Doe" }
+
+    SignupResponse:
+      type: integer
+      format: int64
+      description: ID of the newly created user
+      example: 3421
+  securitySchemes:
+    bearerAuth: # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT # optional, arbitrary value for documentation purposes
+
