@@ -1,7 +1,7 @@
 openapi: 3.0.4
 info:
-  title: Sample API
-  description: Optional multiline or single-line description in [CommonMark](http://commonmark.org/help/) or HTML.
+  title: NolaTabs API
+  description: This is the API specification for the backend of NolaTabs application. This only covers the RESTful endpoints. /api/graphql has graphql endpoints
   version: 0.1.9
 
 servers:
