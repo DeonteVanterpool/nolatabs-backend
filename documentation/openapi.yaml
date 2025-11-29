@@ -1,7 +1,7 @@
 openapi: 3.0.4
 info:
   title: NolaTabs API
-  description: This is the API specification for the backend of NolaTabs application. This only covers the RESTful endpoints. /api/graphql has graphql endpoints
+  description: This is the API specification for the backend of NolaTabs application
   version: 0.1.9
 
 servers:
