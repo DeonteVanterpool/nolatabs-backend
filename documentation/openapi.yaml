@@ -22,7 +22,7 @@ paths:
               schema:
                 type: string
                 example: pong
-  /auth/signup:
+  /auth/init:
     post:
       security:
         - bearerAuth: []
@@ -39,7 +39,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SignupResponse'
+                $ref: '#/components/schemas/UserID'
+  /auth/me:
+    get:
+      security:
+        - bearerAuth: []
+      summary: Endpoint for getting the current user ID.
+      responses:
+        "200":
+          description: Successfully found user related to the current Firebase ID token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserID'
 
 components:
   schemas:
@@ -52,7 +64,7 @@ components:
           type: string
       example: { email: "johndoe@example.com" , username: "John Doe" }
 
-    SignupResponse:
+    UserID:
       type: integer
       format: int64
       description: ID of the newly created user
