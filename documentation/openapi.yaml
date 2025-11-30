@@ -52,6 +52,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserID'
+  /account-info:
+    get:
+      security:
+        - bearerAuth: []
+      summary: Endpoint for getting the current user's account info.
+      responses:
+        "200":
+          description: Sucessfully found user account info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountInfo'
 
 components:
   schemas:
@@ -69,6 +81,11 @@ components:
       format: int64
       description: ID of the newly created user
       example: 3421
+    AccountInfo:
+      type: object
+      properties:
+        next-payment-due:
+          type: u64
   securitySchemes:
     bearerAuth: # arbitrary name for the security scheme
       type: http
