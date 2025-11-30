@@ -85,7 +85,7 @@ components:
       type: object
       properties:
         next-payment-due:
-          type: u64
+          type: int64
   securitySchemes:
     bearerAuth: # arbitrary name for the security scheme
       type: http
