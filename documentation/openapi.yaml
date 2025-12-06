@@ -107,6 +107,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Commits'
+  /repository:
+    post:
+      security:
+        - bearerAuth: []
+      summary: Endpoint for creating a repository
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRepositoryRequest'
+      responses:
+        "200":
+          description: Ok
+
   /push:
     post:
       security:
@@ -131,6 +145,14 @@ components:
         username:
           type: string
       example: { email: "johndoe@example.com" , username: "John Doe" }
+
+    CreateRepositoryRequest:
+      type: object
+      properties:
+        owner:
+          type: string
+        name:
+          type: string
 
     PushRequest:
       type: object
