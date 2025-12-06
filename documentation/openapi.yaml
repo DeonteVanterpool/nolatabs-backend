@@ -86,6 +86,9 @@ components:
       properties:
         paid-until:
           type: int64
+        subscription-type:
+          type: string
+          enum: [free, sync, collaborate]
   securitySchemes:
     bearerAuth: # arbitrary name for the security scheme
       type: http
