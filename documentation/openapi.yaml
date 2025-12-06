@@ -52,7 +52,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserID'
-  /account-info:
+  /account/info:
     get:
       security:
         - bearerAuth: []
