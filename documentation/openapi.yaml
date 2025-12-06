@@ -84,7 +84,7 @@ components:
     AccountInfo:
       type: object
       properties:
-        next-payment-due:
+        paid-until:
           type: int64
   securitySchemes:
     bearerAuth: # arbitrary name for the security scheme
