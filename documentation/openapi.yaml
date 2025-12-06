@@ -52,18 +52,61 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserID'
-  /account/info:
+  /account/payment-info:
     get:
       security:
         - bearerAuth: []
-      summary: Endpoint for getting the current user's account info.
+      summary: Endpoint for getting the current user's account payment info
       responses:
         "200":
           description: Sucessfully found user account info
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountInfo'
+                $ref: '#/components/schemas/AccountPaymentInfo'
+  /account/settings:
+    get:
+      security:
+        - bearerAuth: []
+      summary: Endpoint for getting the settings for the current user.
+      responses:
+        "200":
+          description: Successfully found user account settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountSettings'
+  /repositories:
+    get:
+      security:
+        - bearerAuth: []
+      summary: Endpoint for getting the repositories for the current user.
+      responses:
+        "200":
+          description: Successfully found user repositories
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Repositories'
+  /commits:
+    get:
+      security:
+        - bearerAuth: []
+      summary: Endpoint for getting the commits associated with a specific repository
+      parameters:
+        - in: query
+          name: repoId
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of repo to fetch commits from
+      responses:
+        "200":
+          description: Successfully found the commits associated with the given repository
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Commits'
 
 components:
   schemas:
@@ -81,14 +124,112 @@ components:
       format: int64
       description: ID of the newly created user
       example: 3421
-    AccountInfo:
+
+    Repositories:
+      type: array
+      items:
+        type: object
+        properties:
+          public:
+            type: boolean
+          owner:
+            type: integer
+          name:
+            type: string
+          collaborators:
+            type: array
+            items:
+              type: object
+              properties:
+                id: 
+                  type: integer
+                permissions:
+                  type: object
+                  properties:
+                    read:
+                      type: boolean
+                    write:
+                      type: boolean
+                    suggest:
+                      type: boolean
+                    share:
+                      type: boolean
+                    admin:
+                      type: boolean
+                    grantable-permissions:
+                      type: array
+                      items:
+                        type: string
+                        enum: [read, write, suggest, share, admin]
+      description: List of repositories
+
+    Commits:
+      type: array
+      items:
+        type: object
+        properties:
+          hash:
+            type: string
+          author:
+            type: string
+          timestamp:
+            type: integer
+            format: int64
+          encryptedMessage: 
+            type: string
+          additions:
+            type: object
+            properties:
+              after:
+                type: integer
+              encryptedTab:
+                type: string
+          deletions:
+            type: object
+            properties:
+              index:
+                type: integer
+          parentHashes:
+            type: array
+            items:
+              type: string
+      description: List of commits
+
+    AccountPaymentInfo:
       type: object
       properties:
         paid-until:
-          type: int64
+          type: integer
+          format: int64
         subscription-type:
           type: string
-          enum: [free, sync, collaborate]
+          enum: [sync, collaborate]
+
+    AccountSettings:
+      type: object
+      properties:
+        preferred-command-style:
+          type: string
+          enum: [unix, plain-english]
+        auto-commit-behaviour:
+          type: string
+          enum: [timer, count, off]
+        auto-commit-timer-interval:
+          type: integer
+        auto-commit-count-interval:
+          type: integer
+        auto-pull-behaviour:
+          type: string
+          enum: [timer, on, off]
+        auto-pull-timer-interval:
+          type: integer
+        auto-push-behaviour:
+          type: string
+          enum: [timer, count, off]
+        auto-push-timer-interval:
+          type: integer
+        auto-push-count-interval:
+          type: integer
   securitySchemes:
     bearerAuth: # arbitrary name for the security scheme
       type: http
