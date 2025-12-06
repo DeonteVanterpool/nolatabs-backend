@@ -107,6 +107,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Commits'
+  /push:
+    post:
+      security:
+        - bearerAuth: []
+      summary: Endpoint for pushing commits associated with a specific repository
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PushRequest'
+      responses:
+        "200":
+          description: Ok
 
 components:
   schemas:
@@ -118,6 +131,19 @@ components:
         username:
           type: string
       example: { email: "johndoe@example.com" , username: "John Doe" }
+
+    PushRequest:
+      type: object
+      properties:
+        repo:
+          type: object
+          properties:
+            owner:
+              type: string
+            name:
+              type: string
+        commits:
+          $ref: "#/components/schemas/Commits"
 
     UserID:
       type: integer
