@@ -1,0 +1,26 @@
+commits:
+  get:
+    security:
+      - bearerAuth: []
+    summary: Endpoint for getting the commits associated with a specific repository
+    parameters:
+      - in: query
+        name: repo-owner
+        schema:
+          type: integer
+        required: true
+        description: Numeric ID of repo to fetch commits from
+      - in: query
+        name: repo-name
+        schema:
+          type: string
+        required: true
+        description: Numeric ID of repo to fetch commits from
+    responses:
+      "200":
+        description: Successfully found the commits associated with the given repository
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Commits'
+

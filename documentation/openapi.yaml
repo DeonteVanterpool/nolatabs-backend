@@ -38,8 +38,8 @@ paths:
     $ref: 'handlers/repositories.yaml#/pull'
   /repositories/share-links:
     $ref: 'handlers/repositories.yaml#/share-links'
-  /repositories/commits:
-    $ref: 'handlers/repositories.yaml#/commits'
+  /commits:
+    $ref: 'handlers/commits.yaml#/commits'
 
 components:
   schemas:
