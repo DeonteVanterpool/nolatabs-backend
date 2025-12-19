@@ -1,0 +1,6 @@
+UserID:
+  type: integer
+  format: int64
+  description: ID of the newly created user
+  example: 3421
+

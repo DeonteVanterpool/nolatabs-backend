@@ -1,0 +1,31 @@
+# handlers
+init:
+  post:
+    security:
+      - bearerAuth: []
+    summary: Endpoint for creating a user.
+    description: This creates a user in the backend for NolaTabs. This is a *prerequisite* for accessing any endpoints that may require authentication. The associated user must have been signed up using Firebase authentication already. This expects a Firebase ID token from the client side.
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../components/request-bodies/auth.yaml#/SignupRequest'
+    responses:
+      "201":
+        description: Created
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/user.yaml#/UserID'
+me:
+  get:
+    security:
+      - bearerAuth: []
+    summary: Endpoint for getting the current user ID.
+    responses:
+      "200":
+        description: Successfully found user related to the current Firebase ID token
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/user.yaml#/UserID'

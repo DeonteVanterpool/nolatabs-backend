@@ -23,128 +23,38 @@ paths:
                 type: string
                 example: pong
   /auth/init:
-    post:
-      security:
-        - bearerAuth: []
-      summary: Endpoint for creating a user.
-      description: This creates a user in the backend for NolaTabs. This is a *prerequisite* for accessing any endpoints that may require authentication. The associated user must have been signed up using Firebase authentication already. This expects a Firebase ID token from the client side.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SignupRequest'
-      responses:
-        "201":
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserID'
+    $ref: 'handlers/auth.yaml#/init'
   /auth/me:
-    get:
-      security:
-        - bearerAuth: []
-      summary: Endpoint for getting the current user ID.
-      responses:
-        "200":
-          description: Successfully found user related to the current Firebase ID token
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserID'
+    $ref: 'handlers/auth.yaml#/me'
   /account/payment-info:
-    get:
-      security:
-        - bearerAuth: []
-      summary: Endpoint for getting the current user's account payment info
-      responses:
-        "200":
-          description: Sucessfully found user account info
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AccountPaymentInfo'
+    $ref: 'handlers/account.yaml#/payment-info'
   /account/settings:
-    get:
-      security:
-        - bearerAuth: []
-      summary: Endpoint for getting the settings for the current user.
-      responses:
-        "200":
-          description: Successfully found user account settings
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AccountSettings'
+    $ref: 'handlers/account.yaml#/settings'
   /repositories:
-    get:
-      security:
-        - bearerAuth: []
-      summary: Endpoint for getting the repositories for the current user.
-      responses:
-        "200":
-          description: Successfully found user repositories
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Repositories'
-  /commits:
-    get:
-      security:
-        - bearerAuth: []
-      summary: Endpoint for getting the commits associated with a specific repository
-      parameters:
-        - in: query
-          name: repoId
-          schema:
-            type: integer
-          required: true
-          description: Numeric ID of repo to fetch commits from
-      responses:
-        "200":
-          description: Successfully found the commits associated with the given repository
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Commits'
-  /repository:
-    post:
-      security:
-        - bearerAuth: []
-      summary: Endpoint for creating a repository
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateRepositoryRequest'
-      responses:
-        "200":
-          description: Ok
-
-  /push:
-    post:
-      security:
-        - bearerAuth: []
-      summary: Endpoint for pushing commits associated with a specific repository
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PushRequest'
-      responses:
-        "200":
-          description: Ok
+    $ref: 'handlers/repositories.yaml#/all'
+  /repositories/push:
+    $ref: 'handlers/repositories.yaml#/push'
+  /repositories/pull:
+    $ref: 'handlers/repositories.yaml#/pull'
+  /repositories/share-links:
+    $ref: 'handlers/repositories.yaml#/share-links'
+  /repositories/commits:
+    $ref: 'handlers/repositories.yaml#/commits'
 
 components:
   schemas:
-    SignupRequest:
+    ShareLinksResponse:
       type: object
       properties:
-        email:
+        url:
           type: string
-        username:
+    ShareLinksRequest:
+      type: object
+      properties:
+        repoId:
           type: string
-      example: { email: "johndoe@example.com" , username: "John Doe" }
+        commitHash:
+          type: string
 
     CreateRepositoryRequest:
       type: object
@@ -243,41 +153,6 @@ components:
               type: string
       description: List of commits
 
-    AccountPaymentInfo:
-      type: object
-      properties:
-        paid-until:
-          type: integer
-          format: int64
-        subscription-type:
-          type: string
-          enum: [sync, collaborate]
-
-    AccountSettings:
-      type: object
-      properties:
-        preferred-command-style:
-          type: string
-          enum: [unix, plain-english]
-        auto-commit-behaviour:
-          type: string
-          enum: [timer, count, off]
-        auto-commit-timer-interval:
-          type: integer
-        auto-commit-count-interval:
-          type: integer
-        auto-pull-behaviour:
-          type: string
-          enum: [timer, on, off]
-        auto-pull-timer-interval:
-          type: integer
-        auto-push-behaviour:
-          type: string
-          enum: [timer, count, off]
-        auto-push-timer-interval:
-          type: integer
-        auto-push-count-interval:
-          type: integer
   securitySchemes:
     bearerAuth: # arbitrary name for the security scheme
       type: http

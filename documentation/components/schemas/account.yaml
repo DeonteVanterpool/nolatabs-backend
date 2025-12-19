@@ -1,0 +1,35 @@
+PaymentInfo:
+  type: object
+  properties:
+    paid-until:
+      type: integer
+      format: int64
+    subscription-type:
+      type: string
+      enum: [sync, collaborate]
+
+Settings:
+  type: object
+  properties:
+    preferred-command-style:
+      type: string
+      enum: [unix, plain-english]
+    auto-commit-behaviour:
+      type: string
+      enum: [timer, count, off]
+    auto-commit-timer-interval:
+      type: integer
+    auto-commit-count-interval:
+      type: integer
+    auto-pull-behaviour:
+      type: string
+      enum: [timer, on, off]
+    auto-pull-timer-interval:
+      type: integer
+    auto-push-behaviour:
+      type: string
+      enum: [timer, count, off]
+    auto-push-timer-interval:
+      type: integer
+    auto-push-count-interval:
+      type: integer

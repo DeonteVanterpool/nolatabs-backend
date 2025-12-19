@@ -1,0 +1,8 @@
+SignupRequest:
+  type: object
+  properties:
+    email:
+      type: string
+    username:
+      type: string
+  example: { email: "johndoe@example.com" , username: "John Doe" }

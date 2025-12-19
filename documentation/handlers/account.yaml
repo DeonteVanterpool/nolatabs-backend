@@ -1,0 +1,24 @@
+payment-info:
+  get:
+    security:
+      - bearerAuth: []
+    summary: Endpoint for getting the current user's account payment info
+    responses:
+      "200":
+        description: Sucessfully found user account info
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/account.yaml#/PaymentInfo'
+settings:
+  get:
+    security:
+      - bearerAuth: []
+    summary: Endpoint for getting the settings for the current user.
+    responses:
+      "200":
+        description: Successfully found user account settings
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/account.yaml#/Settings'

@@ -1,0 +1,112 @@
+all:
+  get:
+    security:
+      - bearerAuth: []
+    summary: Endpoint for getting the repositories for the current user.
+    responses:
+      "200":
+        description: Successfully found user repositories
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Repositories'
+  post:
+    security:
+      - bearerAuth: []
+    summary: Endpoint for creating a repository
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CreateRepositoryRequest'
+    responses:
+      "200":
+        description: Ok
+
+push:
+  post:
+    security:
+      - bearerAuth: []
+    summary: Endpoint for pushing commits associated with a specific repository
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PushRequest'
+    responses:
+      "200":
+        description: Ok
+
+pull:
+  get:
+    security:
+      - bearerAuth: []
+    summary: Endpoint for pulling commits associated with a specific repository
+    parameters:
+      - in: query
+        name: repoId
+        schema:
+          type: integer
+        required: true
+        description: Numeric ID of repo to fetch commits from
+      - in: query
+        name: branchId
+        schema:
+          type: integer
+        required: true
+        description: ID of branch to fetch commits for
+      - in: query
+        name: head
+        schema:
+          type: string
+        required: true
+        description: Hash of the most up-to-date head
+    responses:
+      "200":
+        description: Ok
+
+share-links:
+  post:
+    security:
+      - bearerAuth: []
+    summary: Create a shareable link with specific permissions
+    description: This creates a user in the backend for NolaTabs. This is a *prerequisite* for accessing any endpoints that may require authentication. The associated user must have been signed up using Firebase authentication already. This expects a Firebase ID token from the client side.
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ShareLinksRequest'
+    responses:
+      "200":
+        description: Ok
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShareLinksResponse'
+
+commits:
+  get:
+    security:
+      - bearerAuth: []
+    summary: Endpoint for getting the commits associated with a specific repository
+    parameters:
+      - in: query
+        name: repo-owner
+        schema:
+          type: integer
+        required: true
+        description: Numeric ID of repo to fetch commits from
+      - in: query
+        name: repo-name
+        schema:
+          type: string
+        required: true
+        description: Numeric ID of repo to fetch commits from
+    responses:
+      "200":
+        description: Successfully found the commits associated with the given repository
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Commits'
+
