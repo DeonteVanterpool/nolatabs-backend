@@ -22,3 +22,15 @@ settings:
           application/json:
             schema:
               $ref: '../components/schemas/account.yaml#/Settings'
+  post:
+    security:
+      - bearerAuth: []
+    summary: Endpoint for updating the settings for the current user.
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/account.yaml#/Settings'
+    responses:
+      "200":
+        description: Successfully updated user account settings
