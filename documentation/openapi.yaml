@@ -36,123 +36,27 @@ paths:
     $ref: 'handlers/repositories.yaml#/push'
   /repositories/pull:
     $ref: 'handlers/repositories.yaml#/pull'
-  /repositories/share-links:
-    $ref: 'handlers/repositories.yaml#/share-links'
+  /repositories/share:
+    $ref: 'handlers/repositories.yaml#/share'
   /commits:
     $ref: 'handlers/commits.yaml#/commits'
 
 components:
   schemas:
-    ShareLinksResponse:
-      type: object
-      properties:
-        url:
-          type: string
-    ShareLinksRequest:
-      type: object
-      properties:
-        repoId:
-          type: string
-        commitHash:
-          type: string
-
-    CreateRepositoryRequest:
-      type: object
-      properties:
-        owner:
-          type: string
-        name:
-          type: string
-
-    PushRequest:
-      type: object
-      properties:
-        repo:
-          type: object
-          properties:
-            owner:
-              type: string
-            name:
-              type: string
-        commits:
-          $ref: "#/components/schemas/Commits"
-
     UserID:
-      type: integer
-      format: int64
-      description: ID of the newly created user
-      example: 3421
-
+      $ref: 'components/schemas/user.yaml#/UserID'
+    CreateRepositoryRequest:
+      $ref: 'components/schemas/repository.yaml#/CreateRepositoryRequest'
+    PushRequest:
+      $ref: 'components/schemas/repository.yaml#/PushRequest'
+    ShareLinksRequest:
+      $ref: 'components/schemas/repository.yaml#/ShareLinksRequest'
+    ShareLinksResponse:
+      $ref: 'components/schemas/repository.yaml#/ShareLinksResponse'
     Repositories:
-      type: array
-      items:
-        type: object
-        properties:
-          public:
-            type: boolean
-          owner:
-            type: integer
-          name:
-            type: string
-          collaborators:
-            type: array
-            items:
-              type: object
-              properties:
-                id: 
-                  type: integer
-                permissions:
-                  type: object
-                  properties:
-                    read:
-                      type: boolean
-                    write:
-                      type: boolean
-                    suggest:
-                      type: boolean
-                    share:
-                      type: boolean
-                    admin:
-                      type: boolean
-                    grantable-permissions:
-                      type: array
-                      items:
-                        type: string
-                        enum: [read, write, suggest, share, admin]
-      description: List of repositories
-
+      $ref: 'components/schemas/repository.yaml#/Repositories'
     Commits:
-      type: array
-      items:
-        type: object
-        properties:
-          hash:
-            type: string
-          author:
-            type: string
-          timestamp:
-            type: integer
-            format: int64
-          encryptedMessage: 
-            type: string
-          additions:
-            type: object
-            properties:
-              after:
-                type: integer
-              encryptedTab:
-                type: string
-          deletions:
-            type: object
-            properties:
-              index:
-                type: integer
-          parentHashes:
-            type: array
-            items:
-              type: string
-      description: List of commits
-
+      $ref: 'components/schemas/repository.yaml#/Commits'
   securitySchemes:
     bearerAuth: # arbitrary name for the security scheme
       type: http

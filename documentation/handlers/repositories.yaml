@@ -65,7 +65,7 @@ pull:
       "200":
         description: Ok
 
-share-links:
+share:
   post:
     security:
       - bearerAuth: []

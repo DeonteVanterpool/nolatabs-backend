@@ -1,0 +1,105 @@
+CreateRepositoryRequest:
+  type: object
+  properties:
+    owner:
+      type: string
+    name:
+      type: string
+
+PushRequest:
+  type: object
+  properties:
+    repo:
+      type: object
+      properties:
+        owner:
+          type: string
+        name:
+          type: string
+    commits:
+      $ref: "#/components/schemas/Commits"
+
+# share links
+ShareLinksResponse:
+  type: object
+  properties:
+    url:
+      type: string
+ShareLinksRequest:
+  type: object
+  properties:
+    repoId:
+      type: string
+    commitHash:
+      type: string
+
+Repositories:
+  type: array
+  items:
+    type: object
+    properties:
+      public:
+        type: boolean
+      owner:
+        type: integer
+      name:
+        type: string
+      collaborators:
+        type: array
+        items:
+          type: object
+          properties:
+            id: 
+              type: integer
+            permissions:
+              type: object
+              properties:
+                read:
+                  type: boolean
+                write:
+                  type: boolean
+                suggest:
+                  type: boolean
+                share:
+                  type: boolean
+                admin:
+                  type: boolean
+                grantable-permissions:
+                  type: array
+                  items:
+                    type: string
+                    enum: [read, write, suggest, share, admin]
+  description: List of repositories
+
+Commits:
+  type: array
+  items:
+    type: object
+    properties:
+      hash:
+        type: string
+      author:
+        type: string
+      timestamp:
+        type: integer
+        format: int64
+      encryptedMessage: 
+        type: string
+      additions:
+        type: object
+        properties:
+          after:
+            type: integer
+          encryptedTab:
+            type: string
+      deletions:
+        type: object
+        properties:
+          index:
+            type: integer
+      parentHashes:
+        type: array
+        items:
+          type: string
+  description: List of commits
+
