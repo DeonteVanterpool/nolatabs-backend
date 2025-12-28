@@ -19,6 +19,34 @@ PushRequest:
     commits:
       $ref: "#/components/schemas/Commits"
 
+BackupRequest:
+  type: object
+  description: This should be hashed with both the KDF from the password **and the commit hash**
+  properties:
+    repo:
+      type: object
+      properties:
+        owner:
+          type: string
+        name:
+          type: string
+    commit:
+      type: string
+    data: 
+      type: string
+
+PullResponse:
+  type: object
+  properties:
+    commits:
+      $ref: "#/components/schemas/Commits"
+
+RestoreResponse:
+  type: object
+  properties:
+    commits:
+      $ref: "#/components/schemas/Commits"
+
 # share links
 ShareLinksResponse:
   type: object

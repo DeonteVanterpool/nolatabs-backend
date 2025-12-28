@@ -38,6 +38,10 @@ paths:
     $ref: 'handlers/repositories.yaml#/pull'
   /repositories/share:
     $ref: 'handlers/repositories.yaml#/share'
+  /repositories/backup:
+    $ref: 'handlers/repositories.yaml#/backup'
+  /repositories/restore:
+    $ref: 'handlers/repositories.yaml#/restore'
   /commits:
     $ref: 'handlers/commits.yaml#/commits'
 
@@ -49,6 +53,12 @@ components:
       $ref: 'components/schemas/repository.yaml#/CreateRepositoryRequest'
     PushRequest:
       $ref: 'components/schemas/repository.yaml#/PushRequest'
+    BackupRequest:
+      $ref: 'components/schemas/repository.yaml#/BackupRequest'
+    PullResponse:
+      $ref: 'components/schemas/repository.yaml#/PullResponse'
+    RestoreResponse:
+      $ref: 'components/schemas/repository.yaml#/RestoreResponse'
     ShareLinksRequest:
       $ref: 'components/schemas/repository.yaml#/ShareLinksRequest'
     ShareLinksResponse:

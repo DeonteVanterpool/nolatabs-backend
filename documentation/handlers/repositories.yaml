@@ -37,6 +37,47 @@ push:
       "200":
         description: Ok
 
+backup:
+  post:
+    security:
+      - bearerAuth: []
+    summary: Endpoint for backing up a commit associated with a specific repository
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BackupRequest'
+    responses:
+      "200":
+        description: Ok
+
+restore:
+  get:
+    security:
+      - bearerAuth: []
+    summary: Endpoint for restoring a commit associated with a specific repository
+    parameters:
+      - in: query
+        name: repoId
+        schema:
+          type: integer
+        required: true
+        description: Numeric ID of repo to fetch commits from
+      - in: query
+        name: branchId
+        schema:
+          type: integer
+        required: true
+        description: ID of branch to fetch commits for
+    responses:
+      "200":
+        description: Ok
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RestoreResponse'
+
+
 pull:
   get:
     security:
@@ -64,6 +105,10 @@ pull:
     responses:
       "200":
         description: Ok
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PullResponse'
 
 share:
   post:
