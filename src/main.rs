@@ -51,8 +51,6 @@ async fn main() {
     let client = aws_sdk_s3::Client::new(&config);
     let env = Environment::initialize();
 
-    println!("db_url: {}...", &env.database_url[..13]);
-    println!("fb_id: {}...", &env.firebase_project_id[..5]);
     let pool = PoolOptions::new().connect(&env.database_url).await.expect(
         &format!("Could not connect to the database. Please check your DATABASE_URL environment variable: {}",
         &env.database_url
