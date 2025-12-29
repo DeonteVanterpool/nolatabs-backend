@@ -11,8 +11,9 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    environment: 
-      name: testing
+    env: 
+      FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+      BASE_URL: ${{ secrets.BASE_URL }}
 
     steps:
     - uses: actions/checkout@v4
