@@ -60,8 +60,11 @@ async fn main() {
     // build our application with a route
     let app = Router::new()
         .route("/ping", get(handlers::status::ping))
-        .with_state(AppState::new(pool))
-        .with_state(FirebaseAuthState { firebase_auth });
+        .route("/auth/init", post(handlers::auth::init))
+        .route("/auth/me", get(handlers::auth::me))
+        .route("/account/settings", get(handlers::account::get_settings))
+        .route("/account/settings", post(handlers::account::post_settings))
+        .with_state(AppState::new(pool, firebase_auth));
     // .route("/subcription", post(handlers::post_subcription))
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3892").await.unwrap();
