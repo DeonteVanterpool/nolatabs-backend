@@ -18,7 +18,9 @@ DROP TABLE IF EXISTS autocommit_options;
 DROP TABLE IF EXISTS autopull_options;
 DROP TABLE IF EXISTS autopush_options;
 DROP TABLE IF EXISTS command_styles;
-DROP TABLE IF EXISTS subscriptions;
+DROP TABLE IF EXISTS payment_log;
+DROP TABLE IF EXISTS credit;
+DROP TABLE IF EXISTS subscription_plans;
 DROP TABLE IF EXISTS users;
 
 COMMIT;

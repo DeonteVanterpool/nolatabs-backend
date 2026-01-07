@@ -2,15 +2,33 @@ BEGIN;
 
 -- Table containing basic user information
 CREATE TABLE users (
-    id SERIAL PRIMARY KEY NOT NULL,
+    id UUID PRIMARY KEY NOT NULL,
     email TEXT UNIQUE NOT NULL CHECK (email ~ '^.+@.+$'),
     created TIMESTAMP NOT NULL DEFAULT NOW(),
     deleted TIMESTAMP,
 );
 
-CREATE TABLE subscriptions (
-    expires TIMESTAMP NOT NULL,
-    user_id INT REFERENCES users(id) NOT NULL,
+CREATE TABLE subscription_plans (
+    id TEXT PRIMARY KEY NOT NULL,
+    description TEXT,
+    price_cents_per_month INT NOT NULL CHECK (price_cents_per_month >= 0),
+);
+
+INSERT INTO subscription_plans (id, description, price_cents_per_month) VALUES 
+('cloud sync', 'Access to cloud sync features', 200), 
+('sync collaborate', 'Access to premium support features', 300);
+
+CREATE TABLE credit (
+    amount INT NOT NULL CHECK (count >= 0),
+    user_id UUID PRIMARY KEY REFERENCES users(id) NOT NULL,
+    plan_id TEXT REFERENCES subscription_plans(id) NOT NULL,
+);
+
+CREATE TABLE payment_log (
+    payment_id TEXT PRIMARY KEY NOT NULL, -- e.g., Stripe payment intent ID
+    user_id UUID NOT NULL REFERENCES users(id),
+    amount_cents INT NOT NULL CHECK (amount_cents >= 0),
+    payment_date TIMESTAMP NOT NULL DEFAULT NOW(),
 );
 
 CREATE TABLE command_styles (
@@ -53,7 +71,7 @@ INSERT INTO autopush_options (id, description) VALUES
 ('off', 'Do not automatically push changes');
 
 CREATE TABLE user_settings (
-    user_id INT PRIMARY KEY NOT NULL REFERENCES users(id),
+    user_id UUID PRIMARY KEY NOT NULL REFERENCES users(id),
     command_style TEXT NOT NULL REFERENCES command_styles(id),
     autopush_option TEXT NOT NULL REFERENCES autopush_options(id),
     autopush_duration INTERVAL,
@@ -97,7 +115,7 @@ CREATE TABLE repos (
 );
 
 CREATE TABLE client_repos (
-    client_id INT NOT NULL REFERENCES mls_clients(id),
+    client_id UUID NOT NULL REFERENCES mls_clients(id),
     repo_id TEXT NOT NULL REFERENCES repos(id),
     permission_level TEXT NOT NULL REFERENCES repo_permissions(id),
     delegation_level TEXT REFERENCES repo_permissions(id), -- the level that this client can delegate to others (must be less than or equal to permission_level)
@@ -111,21 +129,21 @@ CREATE TABLE client_repos (
 );
 
 CREATE TABLE key_packages (
-    client_id INT NOT NULL REFERENCES mls_clients(id),
+    client_id UUID NOT NULL REFERENCES mls_clients(id),
     key_package JSONB NOT NULL,
     expiration_date TIMESTAMP,
     deleted TIMESTAMP,
 );
 
 CREATE TABLE mls_clients (
-    id SERIAL PRIMARY KEY NOT NULL,
-    user_id INT REFERENCES users,
+    id UUID PRIMARY KEY NOT NULL,
+    user_id UUID REFERENCES users,
     deleted TIMESTAMP,
 );
 
 -- MLS Encoded unicast Messages table
 CREATE TABLE unicast_messages (
-    id SERIAL PRIMARY KEY NOT NULL,
+    id UUID PRIMARY KEY NOT NULL,
     mls_data BYTEA NOT NULL,
     message_type TEXT NOT NULL REFERENCES message_types(id),
     created TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -136,7 +154,7 @@ CREATE TABLE unicast_messages (
 
 -- MLS Encoded broadcast Messages table
 CREATE TABLE broadcast_messages (
-    id SERIAL PRIMARY KEY NOT NULL,
+    id UUID PRIMARY KEY NOT NULL,
     mls_data BYTEA NOT NULL,
     message_type TEXT NOT NULL REFERENCES message_types(id),
     created TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -146,14 +164,14 @@ CREATE TABLE broadcast_messages (
 );
 
 CREATE TABLE broadcast_messages_read_receipts (
-    message_id INT NOT NULL REFERENCES broadcast_messages(id) ON DELETE CASCADE,
+    message_id UUID NOT NULL REFERENCES broadcast_messages(id) ON DELETE CASCADE,
     reader_id INT NOT NULL REFERENCES mls_clients(id),
     read_at TIMESTAMP NOT NULL,
     UNIQUE (message_id, reader_id),
 );
 
 CREATE TABLE unicast_messages_read_receipts (
-    message_id INT NOT NULL REFERENCES unicast_messages(id) ON DELETE CASCADE,
+    message_id UUID NOT NULL REFERENCES unicast_messages(id) ON DELETE CASCADE,
     reader_id INT NOT NULL REFERENCES mls_clients(id),
     read_at TIMESTAMP NOT NULL,
     UNIQUE (message_id, reader_id),
@@ -161,8 +179,8 @@ CREATE TABLE unicast_messages_read_receipts (
 
 CREATE TABLE commits (
     id TEXT PRIMARY KEY NOT NULL, -- commit hash
-    changes INT REFERENCES broadcast_messages(id) ON DELETE SET NULL,
-    message INT REFERENCES broadcast_messages(id) ON DELETE SET NULL,
+    changes UUID REFERENCES broadcast_messages(id) ON DELETE SET NULL,
+    message UUID REFERENCES broadcast_messages(id) ON DELETE SET NULL,
     repo_id TEXT NOT NULL REFERENCES repos(id),
     created TIMESTAMP NOT NULL,
 );
