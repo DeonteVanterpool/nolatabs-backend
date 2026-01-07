@@ -1,3 +1,4 @@
+use chrono::NaiveDateTime;
 use chrono::TimeDelta;
 
 #[derive(Debug, Clone)]
@@ -39,4 +40,10 @@ pub struct Settings {
     pub auto_commit_behaviour: AutoCommitBehaviour,
     pub auto_pull_behaviour: AutoPullBehaviour,
     pub auto_push_behaviour: AutoPushBehaviour,
+}
+
+#[derive(Debug, Clone)]
+pub struct PaymentInfo {
+    pub paid_until: NaiveDateTime,
+    pub subscription_type: String,
 }

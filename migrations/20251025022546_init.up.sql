@@ -19,7 +19,7 @@ INSERT INTO subscription_plans (id, description, price_cents_per_month) VALUES
 ('sync collaborate', 'Access to premium support features', 300);
 
 CREATE TABLE credit (
-    amount INT NOT NULL CHECK (count >= 0),
+    amount INT NOT NULL CHECK (amount >= 0),
     user_id UUID PRIMARY KEY REFERENCES users(id) NOT NULL,
     plan_id TEXT REFERENCES subscription_plans(id) NOT NULL,
 );
@@ -107,10 +107,23 @@ INSERT INTO repo_permissions (id, description) VALUES
 
 CREATE TABLE repos (
     id TEXT UNIQUE NOT NULL,
-    owner INT REFERENCES users(id) NOT NULL,
+    owner UUID REFERENCES users(id) NOT NULL,
     -- owner of a repo must be a paying user, not an anonymous client 
     name TEXT PRIMARY KEY NOT NULL CHECK (name ~* '^((?!\/).)*$'), -- regular expression does not contain '/',
     UNIQUE (owner, name),
+    deleted TIMESTAMP,
+);
+
+CREATE TABLE key_packages (
+    client_id UUID NOT NULL REFERENCES mls_clients(id),
+    key_package JSONB NOT NULL,
+    expiration_date TIMESTAMP,
+    deleted TIMESTAMP,
+);
+
+CREATE TABLE mls_clients (
+    id UUID PRIMARY KEY NOT NULL,
+    user_id UUID REFERENCES users,
     deleted TIMESTAMP,
 );
 
@@ -128,27 +141,14 @@ CREATE TABLE client_repos (
     (permission_level = 'admin' AND delegation_level IN ('viewer', 'contributor', 'editor', NULL))),
 );
 
-CREATE TABLE key_packages (
-    client_id UUID NOT NULL REFERENCES mls_clients(id),
-    key_package JSONB NOT NULL,
-    expiration_date TIMESTAMP,
-    deleted TIMESTAMP,
-);
-
-CREATE TABLE mls_clients (
-    id UUID PRIMARY KEY NOT NULL,
-    user_id UUID REFERENCES users,
-    deleted TIMESTAMP,
-);
-
 -- MLS Encoded unicast Messages table
 CREATE TABLE unicast_messages (
     id UUID PRIMARY KEY NOT NULL,
     mls_data BYTEA NOT NULL,
     message_type TEXT NOT NULL REFERENCES message_types(id),
     created TIMESTAMP NOT NULL DEFAULT NOW(),
-    sender_id INT NOT NULL REFERENCES mls_clients(id),
-    recipient_id INT NOT NULL REFERENCES mls_clients(id),
+    sender_id UUID NOT NULL REFERENCES mls_clients(id),
+    recipient_id UUID NOT NULL REFERENCES mls_clients(id),
     deleted TIMESTAMP,
 );
 
@@ -158,21 +158,21 @@ CREATE TABLE broadcast_messages (
     mls_data BYTEA NOT NULL,
     message_type TEXT NOT NULL REFERENCES message_types(id),
     created TIMESTAMP NOT NULL DEFAULT NOW(),
-    sender_id INT NOT NULL REFERENCES mls_clients(id),
+    sender_id UUID NOT NULL REFERENCES mls_clients(id),
     repo_id TEXT NOT NULL REFERENCES repos(id),
     deleted TIMESTAMP,
 );
 
 CREATE TABLE broadcast_messages_read_receipts (
     message_id UUID NOT NULL REFERENCES broadcast_messages(id) ON DELETE CASCADE,
-    reader_id INT NOT NULL REFERENCES mls_clients(id),
+    reader_id UUID NOT NULL REFERENCES mls_clients(id),
     read_at TIMESTAMP NOT NULL,
     UNIQUE (message_id, reader_id),
 );
 
 CREATE TABLE unicast_messages_read_receipts (
     message_id UUID NOT NULL REFERENCES unicast_messages(id) ON DELETE CASCADE,
-    reader_id INT NOT NULL REFERENCES mls_clients(id),
+    reader_id UUID NOT NULL REFERENCES mls_clients(id),
     read_at TIMESTAMP NOT NULL,
     UNIQUE (message_id, reader_id),
 );
@@ -186,7 +186,7 @@ CREATE TABLE commits (
 );
 
 CREATE TABLE blob_server_backups (
-    blob_server_id INT NOT NULL,
+    blob_server_id UUID NOT NULL,
     related_commit TEXT NOT NULL REFERENCES commits(id),
     deleted TIMESTAMP,
 );
