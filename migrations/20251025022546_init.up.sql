@@ -97,8 +97,8 @@ CREATE TABLE repos (
 CREATE TABLE client_repos (
     client_id INT NOT NULL REFERENCES mls_clients(id),
     repo_id TEXT NOT NULL REFERENCES repos(id),
-    permission_level INT NOT NULL REFERENCES repo_permissions(id),
-    delegation_level INT REFERENCES repo_permissions(id), -- the level that this client can delegate to others (must be less than or equal to permission_level)
+    permission_level TEXT NOT NULL REFERENCES repo_permissions(id),
+    delegation_level TEXT REFERENCES repo_permissions(id), -- the level that this client can delegate to others (must be less than or equal to permission_level)
     deleted TIMESTAMP,
 );
 
@@ -141,12 +141,14 @@ CREATE TABLE broadcast_messages_read_receipts (
     message_id INT NOT NULL REFERENCES broadcast_messages(id) ON DELETE CASCADE,
     reader_id INT NOT NULL REFERENCES mls_clients(id),
     read_at TIMESTAMP NOT NULL,
+    UNIQUE (message_id, reader_id)
 );
 
 CREATE TABLE unicast_messages_read_receipts (
     message_id INT NOT NULL REFERENCES unicast_messages(id) ON DELETE CASCADE,
     reader_id INT NOT NULL REFERENCES mls_clients(id),
     read_at TIMESTAMP NOT NULL,
+    UNIQUE (message_id, reader_id)
 );
 
 CREATE TABLE commits (
