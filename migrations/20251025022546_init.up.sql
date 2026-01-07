@@ -1,3 +1,5 @@
+BEGIN;
+
 -- Table containing basic user information
 CREATE TABLE users (
     id SERIAL PRIMARY KEY NOT NULL,
@@ -79,7 +81,7 @@ CREATE TABLE repo_permissions (
     description TEXT,
 );
 
-INSERT INTO repo_permissions (description) VALUES 
+INSERT INTO repo_permissions (id, description) VALUES 
 ('viewer', 'Able to view the tabs in the current repo'), 
 ('contributor', 'Able to suggest changes to the current repo'), 
 ('editor', 'Able to approve and make changes to the current repo'),
@@ -89,8 +91,8 @@ CREATE TABLE repos (
     id TEXT UNIQUE NOT NULL,
     owner INT REFERENCES users(id) NOT NULL,
     -- owner of a repo must be a paying user, not an anonymous client 
-    name TEXT PRIMARY KEY NOT NULL CHECK (name ~* '^((?!\/).)*$') -- regular expression does not contain '/',
-    unique(owner, name),
+    name TEXT PRIMARY KEY NOT NULL CHECK (name ~* '^((?!\/).)*$'), -- regular expression does not contain '/',
+    UNIQUE (owner, name),
     deleted TIMESTAMP,
 );
 
@@ -100,6 +102,12 @@ CREATE TABLE client_repos (
     permission_level TEXT NOT NULL REFERENCES repo_permissions(id),
     delegation_level TEXT REFERENCES repo_permissions(id), -- the level that this client can delegate to others (must be less than or equal to permission_level)
     deleted TIMESTAMP,
+
+    CONSTRAINT valid_delegation_level CHECK (
+    (permission_level = 'viewer' AND delegation_level IS NULL) OR
+    (permission_level = 'contributor' AND delegation_level IN ('viewer', NULL)) OR
+    (permission_level = 'editor' AND delegation_level IN ('viewer', 'contributor', NULL)) OR
+    (permission_level = 'admin' AND delegation_level IN ('viewer', 'contributor', 'editor', NULL))),
 );
 
 CREATE TABLE key_packages (
@@ -141,14 +149,14 @@ CREATE TABLE broadcast_messages_read_receipts (
     message_id INT NOT NULL REFERENCES broadcast_messages(id) ON DELETE CASCADE,
     reader_id INT NOT NULL REFERENCES mls_clients(id),
     read_at TIMESTAMP NOT NULL,
-    UNIQUE (message_id, reader_id)
+    UNIQUE (message_id, reader_id),
 );
 
 CREATE TABLE unicast_messages_read_receipts (
     message_id INT NOT NULL REFERENCES unicast_messages(id) ON DELETE CASCADE,
     reader_id INT NOT NULL REFERENCES mls_clients(id),
     read_at TIMESTAMP NOT NULL,
-    UNIQUE (message_id, reader_id)
+    UNIQUE (message_id, reader_id),
 );
 
 CREATE TABLE commits (
@@ -164,3 +172,5 @@ CREATE TABLE blob_server_backups (
     related_commit TEXT NOT NULL REFERENCES commits(id),
     deleted TIMESTAMP,
 );
+
+COMMIT;
