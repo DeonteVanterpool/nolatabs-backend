@@ -87,22 +87,23 @@ INSERT INTO repo_permissions (description) VALUES
 
 CREATE TABLE repos (
     id TEXT UNIQUE NOT NULL,
-    owner INT REFERENCES users(id) NOT NULL CHECK (owner ~* '^((?!\/).)*$'), -- regular expression does not contain '/'
+    owner INT REFERENCES users(id) NOT NULL,
     -- owner of a repo must be a paying user, not an anonymous client 
-    name TEXT PRIMARY KEY NOT NULL CHECK (owner ~* '^((?!\/).)*$') -- regular expression does not contain '/',
+    name TEXT PRIMARY KEY NOT NULL CHECK (name ~* '^((?!\/).)*$') -- regular expression does not contain '/',
+    unique(owner, name),
     deleted TIMESTAMP,
 );
 
 CREATE TABLE client_repos (
     client_id INT NOT NULL REFERENCES mls_clients(id),
-    repo_id INT NOT NULL REFERENCES repos(id),
+    repo_id TEXT NOT NULL REFERENCES repos(id),
     permission_level INT NOT NULL REFERENCES repo_permissions(id),
     delegation_level INT REFERENCES repo_permissions(id), -- the level that this client can delegate to others (must be less than or equal to permission_level)
     deleted TIMESTAMP,
 );
 
 CREATE TABLE key_packages (
-    user_id INT NOT NULL REFERENCES users,
+    client_id INT NOT NULL REFERENCES mls_clients(id),
     key_package JSONB NOT NULL,
     expiration_date TIMESTAMP,
     deleted TIMESTAMP,
@@ -132,7 +133,7 @@ CREATE TABLE broadcast_messages (
     message_type TEXT NOT NULL REFERENCES message_types(id),
     created TIMESTAMP NOT NULL DEFAULT NOW(),
     sender_id INT NOT NULL REFERENCES mls_clients(id),
-    repo_id INT NOT NULL REFERENCES repos(id),
+    repo_id TEXT NOT NULL REFERENCES repos(id),
     deleted TIMESTAMP,
 );
 
@@ -152,7 +153,7 @@ CREATE TABLE commits (
     id TEXT PRIMARY KEY NOT NULL, -- commit hash
     changes INT REFERENCES broadcast_messages(id) ON DELETE SET NULL,
     message INT REFERENCES broadcast_messages(id) ON DELETE SET NULL,
-    repo TEXT NOT NULL REFERENCES repos(id),
+    repo_id TEXT NOT NULL REFERENCES repos(id),
     created TIMESTAMP NOT NULL,
 );
 
