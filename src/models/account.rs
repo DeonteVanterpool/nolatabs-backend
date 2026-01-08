@@ -42,10 +42,20 @@ pub struct Settings {
     pub auto_push_behaviour: AutoPushBehaviour,
 }
 
-/*
 #[derive(Debug, Clone)]
-pub struct PaymentInfo {
-    pub paid_until: NaiveDateTime,
-    pub subscription_type: ,
+pub enum SubscriptionType {
+    CloudSync,
+    SyncCollaborate,
 }
-*/
+
+#[derive(Debug, Clone)]
+pub struct SubscriptionInfo {
+    pub paid_until: NaiveDateTime,
+    pub subscription_type: SubscriptionType,
+}
+impl SubscriptionInfo {
+    pub fn is_active(&self) -> bool {
+        let now = chrono::Utc::now().naive_utc();
+        return self.paid_until > now;
+    }
+}
