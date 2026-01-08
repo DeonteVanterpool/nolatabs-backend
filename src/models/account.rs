@@ -1,3 +1,4 @@
+use uuid::Uuid;
 use chrono::NaiveDateTime;
 use chrono::TimeDelta;
 
@@ -53,9 +54,19 @@ pub struct SubscriptionInfo {
     pub paid_until: NaiveDateTime,
     pub subscription_type: SubscriptionType,
 }
+
 impl SubscriptionInfo {
     pub fn is_active(&self) -> bool {
         let now = chrono::Utc::now().naive_utc();
         return self.paid_until > now;
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct Payment {
+    pub payment_id: String, // e.g., Stripe payment intent ID
+    pub user_id: Uuid,
+    pub amount_cents: u32,
+    pub payment_date: NaiveDateTime,
+}
+

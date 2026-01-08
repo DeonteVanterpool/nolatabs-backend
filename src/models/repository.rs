@@ -3,8 +3,9 @@ use uuid::Uuid;
 
 #[derive(Debug, Clone)]
 pub struct Repository {
-    owner_id: Uuid,
-    name: String,
+    pub owner_id: Uuid,
+    pub name: String,
+    pub members: Vec<MLSClientId>,
 }
 
 impl Repository {
@@ -44,7 +45,7 @@ pub struct EncryptedCommitMessage(pub Vec<u8>);
 #[derive(Debug, Clone)]
 pub struct Commit {
     pub hash: CommitHash, 
-    pub repo: Repository,
+    pub repo: Uuid,
     pub parents: Vec<CommitHash>,
     pub author: MLSClientId,
     pub changes: EncryptedChangeSet, // encrypted changes
@@ -52,3 +53,45 @@ pub struct Commit {
     pub created_at: chrono::NaiveDateTime,
 }
 
+#[derive(Debug, Clone)]
+pub enum MessageType {
+    Proposal,
+    Commit,
+    Welcome,
+    Application,
+}
+
+#[derive(Debug, Clone)]
+pub struct BroadcastMessage {
+    pub id: Uuid,
+    pub repo: Uuid,
+    pub sender: MLSClientId,
+    pub message_type: MessageType,
+    pub payload: Vec<u8>, // encrypted payload
+    pub created_at: chrono::NaiveDateTime,
+}
+
+#[derive(Debug, Clone)]
+pub struct UnicastMessage {
+    pub id: Uuid,
+    pub recipient: MLSClientId,
+    pub sender: MLSClientId,
+    pub message_type: MessageType,
+    pub payload: Vec<u8>, // encrypted payload
+    pub created_at: chrono::NaiveDateTime,
+}
+
+#[derive(Debug, Clone)]
+pub struct BroadcastMessageReadReceipt {
+    pub message_id: Uuid,
+    pub readers: MLSClientId,
+    pub read_at: chrono::NaiveDateTime,
+}
+
+#[derive(Debug, Clone)]
+pub struct UnicastMessageReadReceipt {
+    pub message_id: Uuid,
+    pub read_at: chrono::NaiveDateTime,
+}
+
+pub struct BlobServerId(pub Uuid);
