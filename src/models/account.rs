@@ -42,8 +42,10 @@ pub struct Settings {
     pub auto_push_behaviour: AutoPushBehaviour,
 }
 
+/*
 #[derive(Debug, Clone)]
 pub struct PaymentInfo {
     pub paid_until: NaiveDateTime,
-    pub subscription_type: String,
+    pub subscription_type: ,
 }
+*/
