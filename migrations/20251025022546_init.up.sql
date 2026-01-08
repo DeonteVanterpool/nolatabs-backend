@@ -114,16 +114,16 @@ CREATE TABLE repos (
     deleted TIMESTAMP,
 );
 
+CREATE TABLE mls_clients (
+    id UUID PRIMARY KEY NOT NULL,
+    user_id UUID REFERENCES users,
+    deleted TIMESTAMP,
+);
+
 CREATE TABLE key_packages (
     client_id UUID NOT NULL REFERENCES mls_clients(id),
     key_package JSONB NOT NULL,
     expiration_date TIMESTAMP,
-    deleted TIMESTAMP,
-);
-
-CREATE TABLE mls_clients (
-    id UUID PRIMARY KEY NOT NULL,
-    user_id UUID REFERENCES users,
     deleted TIMESTAMP,
 );
 

@@ -55,6 +55,11 @@ async fn main() {
         &format!("Could not connect to the database. Please check your DATABASE_URL environment variable: {}",
         &env.database_url
     ));
+
+    sqlx::migrate!("./migrations")
+        .run(&pool)
+        .await
+        .expect("Could not run database migrations");
     let firebase_auth = Arc::new(FirebaseAuth::new(&env.firebase_project_id).await);
 
     // build our application with a route
