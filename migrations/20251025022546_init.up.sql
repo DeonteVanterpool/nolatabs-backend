@@ -5,13 +5,13 @@ CREATE TABLE users (
     id UUID PRIMARY KEY NOT NULL,
     email TEXT UNIQUE NOT NULL CHECK (email ~ '^.+@.+$'),
     created TIMESTAMP NOT NULL DEFAULT NOW(),
-    deleted TIMESTAMP,
+    deleted TIMESTAMP
 );
 
 CREATE TABLE subscription_plans (
     id TEXT PRIMARY KEY NOT NULL,
     description TEXT,
-    price_cents_per_month INT NOT NULL CHECK (price_cents_per_month >= 0),
+    price_cents_per_month INT NOT NULL CHECK (price_cents_per_month >= 0)
 );
 
 INSERT INTO subscription_plans (id, description, price_cents_per_month) VALUES 
@@ -21,19 +21,19 @@ INSERT INTO subscription_plans (id, description, price_cents_per_month) VALUES
 CREATE TABLE credit (
     amount INT NOT NULL CHECK (amount >= 0),
     user_id UUID PRIMARY KEY REFERENCES users(id) NOT NULL,
-    plan_id TEXT REFERENCES subscription_plans(id) NOT NULL,
+    plan_id TEXT REFERENCES subscription_plans(id) NOT NULL
 );
 
 CREATE TABLE payment_log (
     payment_id TEXT PRIMARY KEY NOT NULL, -- e.g., Stripe payment intent ID
     user_id UUID NOT NULL REFERENCES users(id),
     amount_cents INT NOT NULL CHECK (amount_cents >= 0),
-    payment_date TIMESTAMP NOT NULL DEFAULT NOW(),
+    payment_date TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE command_styles (
     id TEXT PRIMARY KEY NOT NULL,
-    description TEXT,
+    description TEXT
 );
 
 INSERT INTO command_styles (id, description) VALUES 
@@ -42,12 +42,12 @@ INSERT INTO command_styles (id, description) VALUES
 
 CREATE TABLE autopush_options (
     id TEXT PRIMARY KEY NOT NULL,
-    description TEXT,
+    description TEXT
 );
 
 CREATE TABLE autopull_options (
     id TEXT PRIMARY KEY NOT NULL,
-    description TEXT,
+    description TEXT
 );
 
 INSERT INTO autopull_options (id, description) VALUES 
@@ -57,7 +57,7 @@ INSERT INTO autopull_options (id, description) VALUES
 
 CREATE TABLE autocommit_options (
     id TEXT PRIMARY KEY NOT NULL,
-    description TEXT,
+    description TEXT
 );
 
 INSERT INTO autocommit_options (id, description) VALUES 
@@ -80,12 +80,12 @@ CREATE TABLE user_settings (
     autopull_duration INTERVAL,
     autocommit_option TEXT NOT NULL REFERENCES autocommit_options(id),
     autocommit_duration INTERVAL,
-    autocommit_interval_count INT,
+    autocommit_interval_count INT
 );
 
 CREATE TABLE message_types (
     id TEXT PRIMARY KEY NOT NULL,
-    description TEXT,
+    description TEXT
 );
 
 INSERT INTO message_types (id, description) VALUES 
@@ -96,7 +96,7 @@ INSERT INTO message_types (id, description) VALUES
 
 CREATE TABLE repo_permissions (
     id TEXT PRIMARY KEY NOT NULL,
-    description TEXT,
+    description TEXT
 );
 
 INSERT INTO repo_permissions (id, description) VALUES 
@@ -110,21 +110,21 @@ CREATE TABLE repos (
     owner UUID REFERENCES users(id) NOT NULL,
     -- owner of a repo must be a paying user, not an anonymous client 
     name TEXT PRIMARY KEY NOT NULL CHECK (name ~* '^((?!\/).)*$'), -- regular expression does not contain '/',
-    UNIQUE (owner, name),
     deleted TIMESTAMP,
+    UNIQUE (owner, name)
 );
 
 CREATE TABLE mls_clients (
     id UUID PRIMARY KEY NOT NULL,
     user_id UUID REFERENCES users,
-    deleted TIMESTAMP,
+    deleted TIMESTAMP
 );
 
 CREATE TABLE key_packages (
     client_id UUID NOT NULL REFERENCES mls_clients(id),
     key_package JSONB NOT NULL,
     expiration_date TIMESTAMP,
-    deleted TIMESTAMP,
+    deleted TIMESTAMP
 );
 
 CREATE TABLE client_repos (
@@ -138,7 +138,7 @@ CREATE TABLE client_repos (
     (permission_level = 'viewer' AND delegation_level IS NULL) OR
     (permission_level = 'contributor' AND delegation_level IN ('viewer', NULL)) OR
     (permission_level = 'editor' AND delegation_level IN ('viewer', 'contributor', NULL)) OR
-    (permission_level = 'admin' AND delegation_level IN ('viewer', 'contributor', 'editor', NULL))),
+    (permission_level = 'admin' AND delegation_level IN ('viewer', 'contributor', 'editor', NULL)))
 );
 
 -- MLS Encoded unicast Messages table
@@ -149,7 +149,7 @@ CREATE TABLE unicast_messages (
     created TIMESTAMP NOT NULL DEFAULT NOW(),
     sender_id UUID NOT NULL REFERENCES mls_clients(id),
     recipient_id UUID NOT NULL REFERENCES mls_clients(id),
-    deleted TIMESTAMP,
+    deleted TIMESTAMP
 );
 
 -- MLS Encoded broadcast Messages table
@@ -160,21 +160,21 @@ CREATE TABLE broadcast_messages (
     created TIMESTAMP NOT NULL DEFAULT NOW(),
     sender_id UUID NOT NULL REFERENCES mls_clients(id),
     repo_id TEXT NOT NULL REFERENCES repos(id),
-    deleted TIMESTAMP,
+    deleted TIMESTAMP
 );
 
 CREATE TABLE broadcast_messages_read_receipts (
     message_id UUID NOT NULL REFERENCES broadcast_messages(id) ON DELETE CASCADE,
     reader_id UUID NOT NULL REFERENCES mls_clients(id),
     read_at TIMESTAMP NOT NULL,
-    UNIQUE (message_id, reader_id),
+    UNIQUE (message_id, reader_id)
 );
 
 CREATE TABLE unicast_messages_read_receipts (
     message_id UUID NOT NULL REFERENCES unicast_messages(id) ON DELETE CASCADE,
     reader_id UUID NOT NULL REFERENCES mls_clients(id),
     read_at TIMESTAMP NOT NULL,
-    UNIQUE (message_id, reader_id),
+    UNIQUE (message_id, reader_id)
 );
 
 CREATE TABLE commits (
@@ -182,13 +182,13 @@ CREATE TABLE commits (
     changes UUID REFERENCES broadcast_messages(id) ON DELETE SET NULL,
     message UUID REFERENCES broadcast_messages(id) ON DELETE SET NULL,
     repo_id TEXT NOT NULL REFERENCES repos(id),
-    created TIMESTAMP NOT NULL,
+    created TIMESTAMP NOT NULL
 );
 
 CREATE TABLE blob_server_backups (
     blob_server_id UUID NOT NULL,
     related_commit TEXT NOT NULL REFERENCES commits(id),
-    deleted TIMESTAMP,
+    deleted TIMESTAMP
 );
 
 COMMIT;
