@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS mls_clients (
 
 CREATE TABLE IF NOT EXISTS key_packages (
     client_id UUID NOT NULL REFERENCES mls_clients(id),
-    key_package JSONB NOT NULL,
+    key_package BYTEA NOT NULL,
     expiration_date TIMESTAMP,
     deleted TIMESTAMP
 );
