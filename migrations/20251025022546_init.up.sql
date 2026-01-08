@@ -1,14 +1,14 @@
 BEGIN;
 
 -- Table containing basic user information
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY NOT NULL,
     email TEXT UNIQUE NOT NULL CHECK (email ~ '^.+@.+$'),
     created TIMESTAMP NOT NULL DEFAULT NOW(),
     deleted TIMESTAMP
 );
 
-CREATE TABLE subscription_plans (
+CREATE TABLE IF NOT EXISTS subscription_plans (
     id TEXT PRIMARY KEY NOT NULL,
     description TEXT,
     price_cents_per_month INT NOT NULL CHECK (price_cents_per_month >= 0)
@@ -18,20 +18,20 @@ INSERT INTO subscription_plans (id, description, price_cents_per_month) VALUES
 ('cloud sync', 'Access to cloud sync features', 200), 
 ('sync collaborate', 'Access to premium support features', 300);
 
-CREATE TABLE credit (
+CREATE TABLE IF NOT EXISTS credit (
     amount INT NOT NULL CHECK (amount >= 0),
     user_id UUID PRIMARY KEY REFERENCES users(id) NOT NULL,
     plan_id TEXT REFERENCES subscription_plans(id) NOT NULL
 );
 
-CREATE TABLE payment_log (
+CREATE TABLE IF NOT EXISTS payment_log (
     payment_id TEXT PRIMARY KEY NOT NULL, -- e.g., Stripe payment intent ID
     user_id UUID NOT NULL REFERENCES users(id),
     amount_cents INT NOT NULL CHECK (amount_cents >= 0),
     payment_date TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE command_styles (
+CREATE TABLE IF NOT EXISTS command_styles (
     id TEXT PRIMARY KEY NOT NULL,
     description TEXT
 );
@@ -40,12 +40,12 @@ INSERT INTO command_styles (id, description) VALUES
 ('terminal style', 'Git / terminal style commands for power users'), 
 ('plain-english style', 'Plain English style commands for ease of use');
 
-CREATE TABLE autopush_options (
+CREATE TABLE IF NOT EXISTS autopush_options (
     id TEXT PRIMARY KEY NOT NULL,
     description TEXT
 );
 
-CREATE TABLE autopull_options (
+CREATE TABLE IF NOT EXISTS autopull_options (
     id TEXT PRIMARY KEY NOT NULL,
     description TEXT
 );
@@ -55,7 +55,7 @@ INSERT INTO autopull_options (id, description) VALUES
 ('on', 'Automatically pull changes when they are available'), 
 ('off', 'Do not automatically pull changes');
 
-CREATE TABLE autocommit_options (
+CREATE TABLE IF NOT EXISTS autocommit_options (
     id TEXT PRIMARY KEY NOT NULL,
     description TEXT
 );
@@ -70,7 +70,7 @@ INSERT INTO autopush_options (id, description) VALUES
 ('count', 'Automatically push changes after a certain number of commits'), 
 ('off', 'Do not automatically push changes');
 
-CREATE TABLE user_settings (
+CREATE TABLE IF NOT EXISTS user_settings (
     user_id UUID PRIMARY KEY NOT NULL REFERENCES users(id),
     command_style TEXT NOT NULL REFERENCES command_styles(id),
     autopush_option TEXT NOT NULL REFERENCES autopush_options(id),
@@ -83,7 +83,7 @@ CREATE TABLE user_settings (
     autocommit_interval_count INT
 );
 
-CREATE TABLE message_types (
+CREATE TABLE IF NOT EXISTS message_types (
     id TEXT PRIMARY KEY NOT NULL,
     description TEXT
 );
@@ -94,7 +94,7 @@ INSERT INTO message_types (id, description) VALUES
 ('welcome', 'MLS Welcome Message'),
 ('application', 'MLS Application Message');
 
-CREATE TABLE repo_permissions (
+CREATE TABLE IF NOT EXISTS repo_permissions (
     id TEXT PRIMARY KEY NOT NULL,
     description TEXT
 );
@@ -105,7 +105,7 @@ INSERT INTO repo_permissions (id, description) VALUES
 ('editor', 'Able to approve and make changes to the current repo'),
 ('admin', 'Able to manage repo settings and permissions');
 
-CREATE TABLE repos (
+CREATE TABLE IF NOT EXISTS repos (
     id TEXT UNIQUE NOT NULL,
     owner UUID REFERENCES users(id) NOT NULL,
     -- owner of a repo must be a paying user, not an anonymous client 
@@ -114,20 +114,20 @@ CREATE TABLE repos (
     UNIQUE (owner, name)
 );
 
-CREATE TABLE mls_clients (
+CREATE TABLE IF NOT EXISTS mls_clients (
     id UUID PRIMARY KEY NOT NULL,
     user_id UUID REFERENCES users,
     deleted TIMESTAMP
 );
 
-CREATE TABLE key_packages (
+CREATE TABLE IF NOT EXISTS key_packages (
     client_id UUID NOT NULL REFERENCES mls_clients(id),
     key_package JSONB NOT NULL,
     expiration_date TIMESTAMP,
     deleted TIMESTAMP
 );
 
-CREATE TABLE client_repos (
+CREATE TABLE IF NOT EXISTS client_repos (
     client_id UUID NOT NULL REFERENCES mls_clients(id),
     repo_id TEXT NOT NULL REFERENCES repos(id),
     permission_level TEXT NOT NULL REFERENCES repo_permissions(id),
@@ -142,7 +142,7 @@ CREATE TABLE client_repos (
 );
 
 -- MLS Encoded unicast Messages table
-CREATE TABLE unicast_messages (
+CREATE TABLE IF NOT EXISTS unicast_messages (
     id UUID PRIMARY KEY NOT NULL,
     mls_data BYTEA NOT NULL,
     message_type TEXT NOT NULL REFERENCES message_types(id),
@@ -153,7 +153,7 @@ CREATE TABLE unicast_messages (
 );
 
 -- MLS Encoded broadcast Messages table
-CREATE TABLE broadcast_messages (
+CREATE TABLE IF NOT EXISTS broadcast_messages (
     id UUID PRIMARY KEY NOT NULL,
     mls_data BYTEA NOT NULL,
     message_type TEXT NOT NULL REFERENCES message_types(id),
@@ -163,21 +163,21 @@ CREATE TABLE broadcast_messages (
     deleted TIMESTAMP
 );
 
-CREATE TABLE broadcast_messages_read_receipts (
+CREATE TABLE IF NOT EXISTS broadcast_messages_read_receipts (
     message_id UUID NOT NULL REFERENCES broadcast_messages(id) ON DELETE CASCADE,
     reader_id UUID NOT NULL REFERENCES mls_clients(id),
     read_at TIMESTAMP NOT NULL,
     UNIQUE (message_id, reader_id)
 );
 
-CREATE TABLE unicast_messages_read_receipts (
+CREATE TABLE IF NOT EXISTS unicast_messages_read_receipts (
     message_id UUID NOT NULL REFERENCES unicast_messages(id) ON DELETE CASCADE,
     reader_id UUID NOT NULL REFERENCES mls_clients(id),
     read_at TIMESTAMP NOT NULL,
     UNIQUE (message_id, reader_id)
 );
 
-CREATE TABLE commits (
+CREATE TABLE IF NOT EXISTS commits (
     id TEXT PRIMARY KEY NOT NULL, -- commit hash
     changes UUID REFERENCES broadcast_messages(id) ON DELETE SET NULL,
     message UUID REFERENCES broadcast_messages(id) ON DELETE SET NULL,
@@ -185,7 +185,7 @@ CREATE TABLE commits (
     created TIMESTAMP NOT NULL
 );
 
-CREATE TABLE blob_server_backups (
+CREATE TABLE IF NOT EXISTS blob_server_backups (
     blob_server_id UUID NOT NULL,
     related_commit TEXT NOT NULL REFERENCES commits(id),
     deleted TIMESTAMP
