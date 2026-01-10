@@ -1,3 +1,4 @@
+use uuid::Uuid;
 use sqlx::PgPool;
 use core::error::Error;
 
@@ -17,7 +18,8 @@ impl UserRepository {
         unimplemented!("TODO: implement get_user_by_email")
     }
 
-    pub fn find_by_email(self, email: &str) -> Result<Option<usize>, Box<dyn Error>> {
-        unimplemented!("TODO: implement get_user_by_email")
+    pub async fn find_by_email(self, email: &str) -> Result<Option<Uuid>, Box<dyn Error>> {
+        Ok(sqlx::query!("SELECT id FROM users WHERE email = $1", email)
+            .fetch_optional(&self.conn).await?.map(|v| v.id))
     }
 }

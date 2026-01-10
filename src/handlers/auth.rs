@@ -38,7 +38,7 @@ pub async fn me(State(state): State<AppState>, user: FirebaseUser) -> Result<imp
 
     let uid = state
         .user_repository
-        .find_by_email(&user.email.unwrap())
+        .find_by_email(&user.email.unwrap()).await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
         .map(|option| option.ok_or(StatusCode::NOT_FOUND).map(|v| v.to_string()));
     return uid?;
