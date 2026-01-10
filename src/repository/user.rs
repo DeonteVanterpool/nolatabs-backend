@@ -14,11 +14,11 @@ impl UserRepository {
         }
     }
 
-    pub fn create_user(self, name: &str, email: &str) -> Result<usize, Box<dyn Error>> {
+    pub fn create_user(&self, name: &str, email: &str) -> Result<usize, Box<dyn Error>> {
         unimplemented!("TODO: implement get_user_by_email")
     }
 
-    pub async fn find_by_email(self, email: &str) -> Result<Option<Uuid>, Box<dyn Error>> {
+    pub async fn find_by_email(&self, email: &str) -> Result<Option<Uuid>, Box<dyn Error>> {
         Ok(sqlx::query!("SELECT id FROM users WHERE email = $1", email)
             .fetch_optional(&self.conn).await?.map(|v| v.id))
     }
