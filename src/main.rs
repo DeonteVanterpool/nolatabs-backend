@@ -83,8 +83,8 @@ async fn main() {
     let builder = secrets_manager_client.get_secret_value();
     let db_password = String::from(encode(builder.set_secret_id(Some(env.database_secret_arn.clone())).send().await.expect("Error getting secret").secret_string().expect("Error getting secret string")));
 
-    let pool = PoolOptions::new().connect(&db_connection_string(&env, db_password)).await.expect(
-        &format!("Could not connect to the database. Please check your DATABASE_URL environment variable.",
+    let pool = PoolOptions::new().connect(&db_connection_string(&env, db_password.clone())).await.expect(
+        &format!("Could not connect to the database. Please check your DATABASE_URL environment variable: {}", db_connection_string(&env, db_password)
     ));
 
     sqlx::migrate!("./migrations")
