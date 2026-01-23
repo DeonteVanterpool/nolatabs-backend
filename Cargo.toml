@@ -20,3 +20,4 @@ firebase-auth = "0.5.1"
 fars = "0.2.0"
 reqwest = "0.12.24"
 uuid = { version = "1.19.0", features = ["v4"] }
+urlencoding = "2.1.3"
