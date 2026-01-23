@@ -1,4 +1,5 @@
 use crate::AppState;
+use crate::repository::user::UserRepositoryTrait;
 use axum::extract::{Json, Path, Query, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Result};
@@ -7,7 +8,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct SignupPayload {
-    name: String,
 }
 
 pub async fn init(
@@ -24,7 +24,7 @@ pub async fn init(
 
     let uid = state
         .user_repository
-        .create_user(&payload.name, &user.email.unwrap());
+        .create(&user.email.unwrap()).await;
     return uid.map_err(|_| StatusCode::INTERNAL_SERVER_ERROR).map(|v| v.to_string());
 }
 
@@ -38,7 +38,7 @@ pub async fn me(State(state): State<AppState>, user: FirebaseUser) -> Result<imp
 
     let uid = state
         .user_repository
-        .find_user_id_by_email(&user.email.unwrap()).await
+        .find_by_email(&user.email.unwrap()).await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
         .map(|option| option.ok_or(StatusCode::NOT_FOUND).map(|v| v.to_string()));
     return uid?;

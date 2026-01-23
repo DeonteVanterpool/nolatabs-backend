@@ -8,6 +8,22 @@ pub enum CommandStyle {
     PlainEnglish,
 }
 
+impl CommandStyle {
+    pub fn to_string(&self) -> &'static str {
+        match self {
+            CommandStyle::Unix => "terminal style",
+            CommandStyle::PlainEnglish => "plain-english style",
+        }
+    }
+    pub fn from_string(s: &str) -> Option<CommandStyle> {
+        match s {
+            "terminal style" => Some(CommandStyle::Unix),
+            "plain-english style" => Some(CommandStyle::PlainEnglish),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum AutoCommitBehaviour {
     // automatically commit every [x] minutes
