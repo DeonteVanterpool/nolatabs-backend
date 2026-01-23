@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 aws-config = "1.8.8"
+aws-sdk-secretsmanager = "1.98.0"
 aws-sdk-s3 = "1.108.0"
 axum = { version = "0.8.4", features = ["macros"] }
 dotenvy = "0.15.7"
@@ -18,4 +19,4 @@ sqlx = { version = "0.8", features = [ "runtime-tokio", "tls-native-tls", "postg
 firebase-auth = "0.5.1"
 fars = "0.2.0"
 reqwest = "0.12.24"
-uuid = "1.19.0"
+uuid = { version = "1.19.0", features = ["v4"] }
