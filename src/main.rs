@@ -7,8 +7,9 @@ use axum::{
 };
 use dotenvy::dotenv;
 use firebase_auth::{FirebaseAuth, FirebaseAuthState};
+use serde_json::Value;
 use sqlx::pool::PoolOptions;
-use std::future::IntoFuture;
+use std::{collections::HashMap, future::IntoFuture};
 use std::{env, sync::Arc};
 use urlencoding::encode;
 
@@ -63,11 +64,7 @@ impl Environment {
 fn db_connection_string(env: &Environment, secret: String) -> String {
     format!(
         "postgresql://{}:{}@{}:{}/{}",
-        env.database_user,
-        secret,
-        env.database_host,
-        env.database_port,
-        env.database_name
+        env.database_user, secret, env.database_host, env.database_port, env.database_name
     )
 }
 
@@ -81,10 +78,18 @@ async fn main() {
     let env = Environment::initialize();
     let secrets_manager_client = aws_sdk_secretsmanager::Client::new(&config);
     let builder = secrets_manager_client.get_secret_value();
-    let db_password = String::from(encode(builder.set_secret_id(Some(env.database_secret_arn.clone())).send().await.expect("Error getting secret").secret_string().expect("Error getting secret string")));
+    let db_password = String::from(encode(serde_json::from_str::<Value>(
+        builder
+            .set_secret_id(Some(env.database_secret_arn.clone()))
+            .send()
+            .await
+            .expect("Error getting secret")
+            .secret_string()
+            .expect("Error getting secret string"),
+    ).expect("Error deserializing secret response")["password"].as_str().expect("Error getting password from secret")));
 
     let pool = PoolOptions::new().connect(&db_connection_string(&env, db_password.clone())).await.expect(
-        &format!("Could not connect to the database. Please check your DATABASE_URL environment variable: {}", db_connection_string(&env, db_password)
+        &format!("Could not connect to the database. Please check your DATABASE_URL environment variable."
     ));
 
     sqlx::migrate!("./migrations")
