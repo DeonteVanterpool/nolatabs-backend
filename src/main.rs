@@ -9,6 +9,7 @@ use dotenvy::dotenv;
 use firebase_auth::{FirebaseAuth, FirebaseAuthState};
 use serde_json::Value;
 use sqlx::pool::PoolOptions;
+use core::panic;
 use std::{collections::HashMap, future::IntoFuture};
 use std::{env, sync::Arc};
 use urlencoding::encode;
@@ -28,6 +29,7 @@ struct Environment {
     database_port: String,
     database_name: String,
     firebase_project_id: String,
+    environment: state::Environment,
 }
 
 impl Environment {
@@ -57,6 +59,12 @@ impl Environment {
             firebase_project_id: env::var("FIREBASE_PROJECT_ID").expect(
                 "Could not find FIREBASE_PROJECT_ID environment variable anywhere. Try putting it in .env",
             ),
+            environment: match env::var("ENVIRONMENT").expect("Could not find ENVIRONMENT environment variable anywhere. Try putting it in .env").as_str() {
+                "prod" => state::Environment::Production,
+                "staging" => state::Environment::Staging,
+                "test" => state::Environment::Testing,
+                _ => panic!("could not interpret environment. please use either 'prod', 'staging', or 'test'")
+            }
         }
     }
 }
@@ -105,7 +113,7 @@ async fn main() {
         .route("/auth/me", get(handlers::auth::me))
         .route("/account/settings", get(handlers::account::get_settings))
         .route("/account/settings", post(handlers::account::post_settings))
-        .with_state(AppState::new(pool, firebase_auth));
+        .with_state(AppState::new(pool, firebase_auth, env.environment));
     // .route("/subcription", post(handlers::post_subcription))
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3892").await.unwrap();

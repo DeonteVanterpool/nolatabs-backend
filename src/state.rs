@@ -5,18 +5,27 @@ use firebase_auth::{FirebaseAuth, FirebaseAuthState};
 
 use crate::repository::user::UserRepository;
 
+#[derive(Clone, PartialEq)]
+pub enum Environment {
+    Production,
+    Staging,
+    Testing,
+}
+
 #[derive(Clone)]
 pub struct AppState {
     // auth: firebase_auth_sdk::Auth,
     pub user_repository: UserRepository,
     pub firebase_auth: FirebaseAuthState,
+    pub environment: Environment
 }
 
 impl AppState {
-    pub fn new(pool: PgPool, firebase_auth: Arc<FirebaseAuth>) -> Self {
+    pub fn new(pool: PgPool, firebase_auth: Arc<FirebaseAuth>, environment: Environment) -> Self {
         return AppState {
             user_repository: UserRepository::new(pool),
             firebase_auth: FirebaseAuthState { firebase_auth },
+            environment,
         }
     }
 }

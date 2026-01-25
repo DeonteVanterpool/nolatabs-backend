@@ -7,13 +7,35 @@ use firebase_auth::FirebaseUser;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
-pub struct SignupPayload {
-}
+pub struct SignupPayload {}
 
 pub async fn init(
     State(state): State<AppState>,
     user: FirebaseUser,
-    Json(payload): Json<SignupPayload>,
+    // Json(payload): Json<SignupPayload>,
+) -> Result<impl IntoResponse, StatusCode> {
+    if user.email.is_none() {
+        return Err(StatusCode::UNAUTHORIZED);
+    }
+    let eml = user.email.unwrap();
+    if !user.email_verified.unwrap_or(false) && (!&eml.ends_with("@test.account") && state.environment != crate::state::Environment::Production) {
+        // email not verified AND not a test account
+        println!("Email not verified and not a test account");
+        return Err(StatusCode::FORBIDDEN);
+    }
+
+    let uid = state.user_repository.create(&eml).await;
+    if uid.is_err() {
+        println!("Error creating user: {:?}", uid);
+    }
+    return uid
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+        .map(|v| v.to_string());
+}
+
+pub async fn me(
+    State(state): State<AppState>,
+    user: FirebaseUser,
 ) -> Result<impl IntoResponse, StatusCode> {
     if !user.email_verified.unwrap_or(false) {
         return Err(StatusCode::FORBIDDEN);
@@ -24,21 +46,8 @@ pub async fn init(
 
     let uid = state
         .user_repository
-        .create(&user.email.unwrap()).await;
-    return uid.map_err(|_| StatusCode::INTERNAL_SERVER_ERROR).map(|v| v.to_string());
-}
-
-pub async fn me(State(state): State<AppState>, user: FirebaseUser) -> Result<impl IntoResponse, StatusCode> {
-    if !user.email_verified.unwrap_or(false) {
-        return Err(StatusCode::FORBIDDEN);
-    }
-    if user.email.is_none() {
-        return Err(StatusCode::UNAUTHORIZED);
-    }
-
-    let uid = state
-        .user_repository
-        .find_by_email(&user.email.unwrap()).await
+        .find_by_email(&user.email.unwrap())
+        .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
         .map(|option| option.ok_or(StatusCode::NOT_FOUND).map(|v| v.to_string()));
     return uid?;
