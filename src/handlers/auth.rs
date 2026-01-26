@@ -1,10 +1,12 @@
 use crate::AppState;
 use crate::repository::user::UserRepositoryTrait;
+use axum::Extension;
 use axum::extract::{Json, Path, Query, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Result};
 use firebase_auth::FirebaseUser;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Serialize, Deserialize)]
 pub struct SignupPayload {}
@@ -20,13 +22,13 @@ pub async fn init(
     let eml = user.email.unwrap();
     if !user.email_verified.unwrap_or(false) && (!&eml.ends_with("@test.account") && state.environment != crate::state::Environment::Production) {
         // email not verified AND not a test account
-        println!("Email not verified and not a test account");
+        tracing::warn!(email=%eml, "Email not verified");
         return Err(StatusCode::FORBIDDEN);
     }
 
     let uid = state.user_repository.create(&eml).await;
     if uid.is_err() {
-        println!("Error creating user: {:?}", uid);
+        tracing::error!(email=%eml, error=%uid.as_ref().err().unwrap(), "Database error creating user");
     }
     return uid
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
@@ -34,21 +36,7 @@ pub async fn init(
 }
 
 pub async fn me(
-    State(state): State<AppState>,
-    user: FirebaseUser,
+    uid: Extension<Uuid>
 ) -> Result<impl IntoResponse, StatusCode> {
-    if !user.email_verified.unwrap_or(false) && (!user.email.as_ref().map_or(false, |e| e.ends_with("@test.account")) && state.environment != crate::state::Environment::Production) {
-        return Err(StatusCode::FORBIDDEN);
-    }
-    if user.email.is_none() {
-        return Err(StatusCode::UNAUTHORIZED);
-    }
-
-    let uid = state
-        .user_repository
-        .find_by_email(&user.email.unwrap())
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
-        .map(|option| option.ok_or(StatusCode::NOT_FOUND).map(|v| v.to_string()));
-    return uid?;
+    return Ok(uid.to_string());
 }

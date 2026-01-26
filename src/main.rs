@@ -1,16 +1,18 @@
-use crate::state::AppState;
+use std::fs::OpenOptions;
+use tower_http::trace::TraceLayer;
+use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
+use crate::{handlers::middleware::{with_authenticated, with_logging}, state::AppState};
 use aws_config::BehaviorVersion;
 use axum::{
-    Router,
-    response::Redirect,
-    routing::{get, post},
+    Router, middleware, response::Redirect, routing::{get, post}
 };
 use dotenvy::dotenv;
 use firebase_auth::{FirebaseAuth, FirebaseAuthState};
 use serde_json::Value;
 use sqlx::pool::PoolOptions;
 use core::panic;
-use std::{collections::HashMap, future::IntoFuture};
+use std::{collections::HashMap, future::IntoFuture, net::SocketAddr};
 use std::{env, sync::Arc};
 use urlencoding::encode;
 
@@ -78,8 +80,36 @@ fn db_connection_string(env: &Environment, secret: String) -> String {
 
 #[tokio::main]
 async fn main() {
+    let log_file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open("logs/app.log").unwrap();
     // initialize tracing
-    tracing_subscriber::fmt::init();
+    let fmt_layer_file = tracing_subscriber::fmt::layer()
+        .with_writer(log_file)
+        .json() // JSON format for structured logging
+        .with_target(true)
+        .with_level(true)
+        .with_thread_ids(true)
+        .with_thread_names(true);
+
+    let fmt_layer_stdout = tracing_subscriber::fmt::layer()
+        .with_writer(std::io::stdout)
+        .json() // JSON format for structured logging
+        .with_target(true)
+        .with_level(true)
+        .with_thread_ids(true)
+        .with_thread_names(true);
+
+    let filter_layer = tracing_subscriber::EnvFilter::try_from_default_env()
+        .or_else(|_| tracing_subscriber::EnvFilter::try_new("info"))
+        .unwrap();
+
+    tracing_subscriber::registry()
+        .with(fmt_layer_file)
+        .with(fmt_layer_stdout)
+        .with(filter_layer)
+        .init();
 
     let config = aws_config::load_defaults(BehaviorVersion::v2025_01_17()).await;
     let client = aws_sdk_s3::Client::new(&config);
@@ -106,19 +136,24 @@ async fn main() {
         .expect("Could not run database migrations");
     let firebase_auth = Arc::new(FirebaseAuth::new(&env.firebase_project_id).await);
 
+    let state = AppState::new(pool, firebase_auth, env.environment);
     // build our application with a route
     let app = Router::new()
-        .route("/ping", get(handlers::status::ping))
-        .route("/auth/init", post(handlers::auth::init))
         .route("/auth/me", get(handlers::auth::me))
         .route("/account/settings", get(handlers::account::get_settings))
         .route("/account/settings", post(handlers::account::post_settings))
-        .with_state(AppState::new(pool, firebase_auth, env.environment));
+        .route_layer(middleware::from_fn_with_state(state.clone(), with_authenticated))
+        .route("/auth/init", post(handlers::auth::init))
+        .route("/ping", get(handlers::status::ping))
+        .route_layer(middleware::from_fn_with_state(state.clone(), with_logging))
+        .layer(TraceLayer::new_for_http())
+        .with_state(state)
+        .into_make_service_with_connect_info::<SocketAddr>();
     // .route("/subcription", post(handlers::post_subcription))
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3892").await.unwrap();
 
-    println!(
+    tracing::info!(
         "Serving public API: http://{}",
         listener.local_addr().unwrap()
     );
@@ -133,5 +168,5 @@ async fn main() {
         _ = public_handle => {},
     }
 
-    println!("Shutting down the server...");
+    tracing::info!("Shutting down the server...");
 }
