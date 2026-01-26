@@ -28,7 +28,7 @@ async fn signup<'a>(id_token: &'a str, client: &Client, base_url: &str) -> reqwe
 }
 
 #[tokio::test]
-async fn test_me() {
+async fn test_signup_then_me() {
     let test_env = TestEnvironment::init().await;
 
     let client = test_env.client.as_ref().unwrap();
