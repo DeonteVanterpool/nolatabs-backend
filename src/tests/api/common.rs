@@ -21,7 +21,10 @@ lazy_static! {
 pub struct TestEnvironment {
     initialized: bool,
     pub firebase_auth: Option<FirebaseAuth>,
-    pub id_token: Option<String>,
+    pub id_token_signup: Option<String>,
+    pub id_token_main: Option<String>,
+    pub id_token_me_1: Option<String>,
+    pub id_token_me_2: Option<String>,
     pub client: Option<Client>,
     pub api_key: Option<String>,
     pub base_url: Option<String>,
@@ -42,23 +45,29 @@ impl TestEnvironment {
         }
         let firebase_auth = FirebaseAuth::new("nolatabs").await;
         let ts = Utc::now().timestamp_millis();
-        let id_token = signup_firebase(ts).await;
+        let id_token = signup_firebase(ts, "signup").await;
+        let id_token_main = signup_firebase(ts, "main").await;
+        let id_token_me_1 = signup_firebase(ts, "me_1").await;
+        let id_token_me_2 = signup_firebase(ts, "me_2").await;
         let client = Client::new();
         let api_key = env::var("FIREBASE_API_KEY").expect(
             "Could not find FIREBASE_API_KEY environment variable anywhere. Try putting it in .env",
         );
         test_env.firebase_auth = Some(firebase_auth);
-        test_env.id_token = Some(id_token);
+        test_env.id_token_signup = Some(id_token);
         test_env.client = Some(client);
         test_env.api_key = Some(api_key);
         test_env.base_url = Some(load_base_url());
         test_env.initialized = true;
         test_env.timestamp = Some(ts);
+        test_env.id_token_main = Some(id_token_main);
+        test_env.id_token_me_1 = Some(id_token_me_1);
+        test_env.id_token_me_2 = Some(id_token_me_2);
         return test_env;
     }
 }
 
-async fn signup_firebase(ts: i64) -> String {
+async fn signup_firebase(ts: i64, ext: &'static str) -> String {
     // Load environment variables from .env file
     // Fails if no .env file found
     if dotenv().is_err() {
@@ -69,10 +78,33 @@ async fn signup_firebase(ts: i64) -> String {
     );
     let config = Config::new(ApiKey::new(api_key));
 
-    let eml = ts.to_string() + "@test.account";
+    let eml = ext.to_string() + "_" + &ts.to_string() + "@test.account";
     // 2. Sign up with email and password then get a session.
     let session = config
         .sign_up_with_email_password(Email::new(eml), Password::new("password"))
+        .await
+        .unwrap();
+
+    // 3. Get user data through the session and get a new session.
+    let (new_session, _user_data) = session.get_user_data().await.unwrap();
+    return String::from(new_session.id_token.inner());
+}
+
+async fn signin_firebase(ts: i64) -> String {
+    // Load environment variables from .env file
+    // Fails if no .env file found
+    if dotenv().is_err() {
+        println!("no .env file found...")
+    }
+    let api_key = env::var("FIREBASE_API_KEY").expect(
+        "Could not find FIREBASE_API_KEY environment variable anywhere. Try putting it in .env",
+    );
+    let config = Config::new(ApiKey::new(api_key));
+
+    let eml = "deonte.vanterpool@test.account";
+    // 2. Sign in with email and password then get a session.
+    let session = config
+        .sign_in_with_email_password(Email::new(eml), Password::new("password"))
         .await
         .unwrap();
 
