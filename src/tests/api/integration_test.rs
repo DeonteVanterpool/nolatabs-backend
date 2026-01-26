@@ -16,7 +16,7 @@ async fn test_signup() {
     assert!(res.status().is_success());
 }
 
-async fn signup<'a>(id_token: &'a str, client: &Client, base_url: &str) -> reqwest::Response {
+async fn signup(id_token: &str, client: &Client, base_url: &str) -> reqwest::Response {
     let res = client
         .post(base_url.to_owned() + "/auth/init")
         .bearer_auth(id_token)
