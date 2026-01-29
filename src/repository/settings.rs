@@ -6,7 +6,6 @@ use crate::models::account::CommandStyle;
 use crate::models::account::Settings;
 use sqlx::PgPool;
 use sqlx::postgres::types::PgInterval;
-use std::error::Error;
 use uuid::Uuid;
 
 #[derive(Clone, Debug)]
@@ -87,7 +86,7 @@ impl SettingsRepositoryTrait for SettingsRepository {
 (user_id, command_style, autopush_option, autopush_duration, autopush_interval_count, autopull_option, autopull_duration, autocommit_option, autocommit_duration, autocommit_interval_count)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)", user_id, cmd_style, autopush_option, autopush_duration, autopush_interval_count, autopull_option, autopull_duration, autocommit_option, autocommit_duration, autocommit_interval_count)
             .execute(&self.conn)
-            .await.map_err(|e| RepoError::Database(e))?;
+            .await.map_err(|e| RepoError::from(e))?;
         Ok(())
     }
 
@@ -124,14 +123,14 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)", user_id, cmd_style, autopush_
         // option is changed
         sqlx::query!("UPDATE user_settings SET command_style = $2, autopush_option = $3, autopush_duration = COALESCE($4, autopush_duration), autopush_interval_count = COALESCE($5, autopush_interval_count), autopull_option = $6, autopull_duration = COALESCE($7, autopull_duration), autocommit_option = $8, autocommit_duration = COALESCE($9, autocommit_duration), autocommit_interval_count = COALESCE($10, autocommit_interval_count) WHERE user_id = $1", user_id, cmd_style, autopush_option, autopush_duration, autopush_interval_count, autopull_option, autopull_duration, autocommit_option, autocommit_duration, autocommit_interval_count)
             .execute(&self.conn)
-            .await.map_err(|e| RepoError::Database(e))?;
+            .await.map_err(|e| RepoError::from(e))?;
         Ok(())
     }
 
     async fn find_by_user_id(&self, uid: Uuid) -> Result<Settings, RepoError> {
         let record = sqlx::query!("SELECT * FROM user_settings WHERE user_id = $1", uid)
             .fetch_optional(&self.conn)
-            .await.map_err(|e| RepoError::Database(e))?;
+            .await.map_err(|e| RepoError::from(e))?;
         if let Some(rec) = record {
             let preferred_command_style = match rec.command_style.as_str() {
                 "terminal style" => CommandStyle::Unix,

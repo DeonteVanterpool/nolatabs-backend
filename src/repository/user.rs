@@ -41,7 +41,7 @@ impl UserRepositoryTrait for UserRepository {
             email
         )
         .fetch_one(&self.conn)
-        .await.map_err(|e| RepoError::Database(e))?
+        .await.map_err(|e: sqlx::Error| RepoError::from(e))?
         .id;
         let settings = SettingsParams {
             preferred_command_style: CommandStyle::Unix,
@@ -57,7 +57,7 @@ impl UserRepositoryTrait for UserRepository {
     async fn find_by_email(&self, email: &str) -> Result<Option<Uuid>, RepoError> {
         Ok(sqlx::query!("SELECT id FROM users WHERE email = $1", email)
             .fetch_optional(&self.conn)
-            .await.map_err(|e| RepoError::Database(e))?
+            .await.map_err(|e| RepoError::from(e))?
             .map(|v| v.id))
     }
 }
