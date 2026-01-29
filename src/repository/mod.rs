@@ -1,3 +1,3 @@
 pub mod user;
-mod settings;
-mod error;
+pub mod settings;
+pub mod error;

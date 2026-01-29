@@ -3,7 +3,7 @@ pub struct User {
 }
 
 impl User {
-    pub fn login(email: &str, password: &str) -> u32 {
+    pub fn login() -> u32 {
         unimplemented!();
     }
 }

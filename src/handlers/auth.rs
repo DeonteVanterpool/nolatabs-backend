@@ -1,7 +1,8 @@
-use crate::AppState;
-use crate::repository::user::UserRepositoryTrait;
+use crate::logic::error::ServiceError;
+use crate::repository::error::RepoError;
+use crate::{AppState, logic};
 use axum::Extension;
-use axum::extract::{Json, Path, Query, State};
+use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Result};
 use firebase_auth::FirebaseUser;
@@ -20,18 +21,39 @@ pub async fn init(
         return Err(StatusCode::UNAUTHORIZED);
     }
     let eml = user.email.unwrap();
-    if !user.email_verified.unwrap_or(false) && (!&eml.ends_with("@test.account") && state.environment != crate::state::Environment::Production) {
-        // email not verified AND not a test account
-        tracing::warn!(email=%eml, "Email not verified");
-        return Err(StatusCode::FORBIDDEN);
+    let verified = user.email_verified.unwrap_or(false);
+    if state.environment == crate::state::Environment::Production {
+        if !verified {
+            tracing::warn!(email=%eml, "Email not verified");
+            return Err(StatusCode::FORBIDDEN);
+        }
+    } else {
+        if !verified && !eml.ends_with("@test.account") {
+            tracing::warn!(email=%eml, "Email not verified");
+            return Err(StatusCode::FORBIDDEN);
+        }
     }
 
-    let uid = state.user_repository.create(&eml).await;
-    if uid.is_err() {
-        tracing::error!(email=%eml, error=%uid.as_ref().err().unwrap(), "Database error creating user");
-    }
+    let uid = logic::auth::register_user(
+        &state.user_repository,
+        &eml,
+    ).await;
+
     return uid
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+        .map_err(|e| {
+            tracing::warn!(email=%eml, error=%e, "Error registering user");
+            match e {
+                ServiceError::RepositoryError(e) => match e {
+                    RepoError::DuplicateEntry(_) => StatusCode::CONFLICT,
+                    RepoError::ConnectionError => {
+                        tracing::warn!(email=%eml, error=%e, "Error registering user");
+                        StatusCode::INTERNAL_SERVER_ERROR
+                    }
+                    _ => StatusCode::INTERNAL_SERVER_ERROR,
+                }
+                _ => StatusCode::INTERNAL_SERVER_ERROR,
+            }
+        })
         .map(|v| v.to_string());
 }
 
