@@ -54,9 +54,6 @@ async fn test_signup_then_me() {
         .await
         .expect("Failed to send request");
 
-    println!("Response 1: {:?}", res1);
-    println!("Response 2: {:?}", res2);
-
     assert!(res1.status().is_success());
     assert!(res2.status().is_success());
 
@@ -74,3 +71,18 @@ async fn test_signup_then_me() {
     assert_eq!(text2, uid_2);
 }
 
+#[tokio::test]
+async fn test_ping() {
+    let test_env = TestEnvironment::init().await;
+
+    let client = test_env.client.as_ref().unwrap();
+    let base_url = test_env.base_url.as_ref().unwrap();
+
+    let resp = client
+        .get(base_url.to_owned() + "/ping")
+        .send()
+        .await
+        .expect("Failed to send request");
+
+    assert!(resp.status().is_success());
+}
