@@ -10,3 +10,12 @@ pub async fn register_user<T: UserRepositoryTrait>(
     return uid
         .map_err(|e| ServiceError::from(e));
 }
+
+pub async fn login_user<T: UserRepositoryTrait>(
+    user_repository: &T,
+    eml: &str,
+) -> Result<Option<Uuid>, ServiceError> {
+    let uid = user_repository.find_by_email(&eml).await;
+    return uid
+        .map_err(|e| ServiceError::from(e));
+}
