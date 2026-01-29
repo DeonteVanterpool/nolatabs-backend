@@ -3,7 +3,7 @@ use crate::models::account::AutoPullBehaviour;
 use crate::models::account::AutoPushBehaviour;
 use crate::models::account::CommandStyle;
 use crate::repository::error::RepoError;
-use crate::repository::settings::SettingsParams;
+use crate::models::account::Settings;
 use crate::repository::settings::SettingsRepository;
 use crate::repository::settings::SettingsRepositoryTrait;
 use sqlx::PgPool;
@@ -43,7 +43,7 @@ impl UserRepositoryTrait for UserRepository {
         .fetch_one(&self.conn)
         .await.map_err(|e: sqlx::Error| RepoError::from(e))?
         .id;
-        let settings = SettingsParams {
+        let settings = Settings {
             preferred_command_style: CommandStyle::Unix,
             auto_push_behaviour: AutoPushBehaviour::Off,
             auto_pull_behaviour: AutoPullBehaviour::Off,

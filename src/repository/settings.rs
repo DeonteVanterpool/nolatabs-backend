@@ -17,12 +17,12 @@ pub trait SettingsRepositoryTrait {
     fn create(
         &self,
         uid: Uuid,
-        settings: SettingsParams,
+        settings: Settings,
     ) -> impl Future<Output = Result<(), RepoError>>;
     fn update(
         &self,
         uid: Uuid,
-        settings: SettingsParams,
+        settings: Settings,
     ) -> impl Future<Output = Result<(), RepoError>>;
     fn find_by_user_id(
         &self,
@@ -36,13 +36,6 @@ impl SettingsRepository {
     }
 }
 
-pub struct SettingsParams {
-    pub preferred_command_style: CommandStyle,
-    pub auto_commit_behaviour: AutoCommitBehaviour,
-    pub auto_pull_behaviour: AutoPullBehaviour,
-    pub auto_push_behaviour: AutoPushBehaviour,
-}
-
 fn to_timedelta(duration: PgInterval) -> chrono::TimeDelta {
     // Convert PgInterval to chrono::TimeDelta
     let months = duration.months as i64;
@@ -53,7 +46,7 @@ fn to_timedelta(duration: PgInterval) -> chrono::TimeDelta {
 }
 
 impl SettingsRepositoryTrait for SettingsRepository {
-    async fn create(&self, user_id: Uuid, settings: SettingsParams) -> Result<(), RepoError> {
+    async fn create(&self, user_id: Uuid, settings: Settings) -> Result<(), RepoError> {
         let cmd_style = match settings.preferred_command_style {
             CommandStyle::Unix => "terminal style",
             CommandStyle::PlainEnglish => "plain-english style",
@@ -90,7 +83,7 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)", user_id, cmd_style, autopush_
         Ok(())
     }
 
-    async fn update(&self, user_id: Uuid, settings: SettingsParams) -> Result<(), RepoError> {
+    async fn update(&self, user_id: Uuid, settings: Settings) -> Result<(), RepoError> {
         let cmd_style = match settings.preferred_command_style {
             CommandStyle::Unix => "terminal style",
             CommandStyle::PlainEnglish => "plain-english style",

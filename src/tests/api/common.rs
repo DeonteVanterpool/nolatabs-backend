@@ -25,6 +25,8 @@ pub struct TestEnvironment {
     pub id_token_main: Option<String>,
     pub id_token_me_1: Option<String>,
     pub id_token_me_2: Option<String>,
+    pub id_token_post_settings: Option<String>,
+    pub id_token_get_settings: Option<String>,
     pub client: Option<Client>,
     pub api_key: Option<String>,
     pub base_url: Option<String>,
@@ -49,6 +51,8 @@ impl TestEnvironment {
         let id_token_main = signup_firebase(ts, "main").await;
         let id_token_me_1 = signup_firebase(ts, "me_1").await;
         let id_token_me_2 = signup_firebase(ts, "me_2").await;
+        let id_token_get_settings = signup_firebase(ts, "get_settings").await;
+        let id_token_post_settings = signup_firebase(ts, "post_settings").await;
         let client = Client::new();
         let api_key = env::var("FIREBASE_API_KEY").expect(
             "Could not find FIREBASE_API_KEY environment variable anywhere. Try putting it in .env",
@@ -63,6 +67,8 @@ impl TestEnvironment {
         test_env.id_token_main = Some(id_token_main);
         test_env.id_token_me_1 = Some(id_token_me_1);
         test_env.id_token_me_2 = Some(id_token_me_2);
+        test_env.id_token_get_settings = Some(id_token_get_settings);
+        test_env.id_token_post_settings = Some(id_token_post_settings);
         return test_env;
     }
 }

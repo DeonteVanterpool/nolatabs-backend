@@ -1,4 +1,6 @@
 use reqwest::Client;
+use serde::Deserialize;
+use serde_json::Value;
 
 use crate::tests::api::common::*;
 
@@ -37,8 +39,16 @@ async fn test_signup_then_me() {
     let id_token_1 = test_env.id_token_me_1.as_ref().unwrap();
     let id_token_2 = test_env.id_token_me_2.as_ref().unwrap();
 
-    let uid_1 = signup(id_token_1, client, base_url).await.text().await.unwrap();
-    let uid_2 = signup(id_token_2, client, base_url).await.text().await.unwrap();
+    let uid_1 = signup(id_token_1, client, base_url)
+        .await
+        .text()
+        .await
+        .unwrap();
+    let uid_2 = signup(id_token_2, client, base_url)
+        .await
+        .text()
+        .await
+        .unwrap();
 
     let res1 = client
         .get(base_url.to_owned() + "/auth/me")
@@ -86,3 +96,99 @@ async fn test_ping() {
 
     assert!(resp.status().is_success());
 }
+
+#[tokio::test]
+async fn test_signup_then_get_account_settings() {
+    let test_env = TestEnvironment::init().await;
+
+    let client = test_env.client.as_ref().unwrap();
+    let base_url = test_env.base_url.as_ref().unwrap();
+
+    let id_token_1 = test_env.id_token_get_settings.as_ref().unwrap();
+
+    signup(id_token_1, client, base_url).await;
+
+    let res1 = client
+        .get(base_url.to_owned() + "/account/settings")
+        .bearer_auth(id_token_1)
+        .send()
+        .await
+        .expect("Failed to send request");
+
+    assert!(res1.status().is_success());
+
+    let text1 = res1.text().await.unwrap();
+    let json_obj: Value = serde_json::from_str(&text1).unwrap();
+    assert!(json_obj.get("preferred_command_style").is_some());
+    assert!(json_obj.get("auto_commit_behaviour").is_some());
+    assert!(json_obj.get("auto_push_behaviour").is_some());
+    assert!(json_obj.get("auto_pull_behaviour").is_some());
+}
+
+#[tokio::test]
+async fn test_signup_then_post_account_settings() {
+    let test_env = TestEnvironment::init().await;
+
+    let client = test_env.client.as_ref().unwrap();
+    let base_url = test_env.base_url.as_ref().unwrap();
+
+    let id_token_1 = test_env.id_token_post_settings.as_ref().unwrap();
+
+    signup(id_token_1, client, base_url).await;
+
+    let json_str = r#"
+{
+    "preferred_command_style": "unix",
+    "auto_commit_behaviour": "timer",
+    "auto_commit_timer_interval": 500,
+    "auto_commit_count_interval": 0,
+    "auto_pull_behaviour": "timer",
+    "auto_push_behaviour": "count",
+    "auto_push_timer_interval": 100,
+    "auto_push_count_interval": 100,
+    "auto_pull_timer_interval": 100
+}"#;
+
+    let json_body = serde_json::from_str::<Value>(&json_str).unwrap();
+
+    let res1 = client
+        .post(base_url.to_owned() + "/account/settings")
+        .json(&json_body)
+        .bearer_auth(id_token_1)
+        .send()
+        .await
+        .expect("Failed to send request");
+
+    assert!(res1.status().is_success());
+
+    // TODO: don't require the entire settings object. Just specific fields you want to change.
+    // This will be a pain to do because I either have to coalesce the values into the database, or
+    // check the optional value for each field before making the DB call. I will also have to use
+    // an UpdateSettingsParams struct instead of the domain model
+    /*
+    let json_str = r#"
+{
+    "preferred_command_style": "unix",
+    "auto_commit_timer_interval": 500,
+    "auto_commit_count_interval": 0,
+    "auto_pull_behaviour": "timer",
+    "auto_push_behaviour": null,
+    "auto_push_timer_interval": 100,
+    "auto_push_count_interval": 100,
+    "auto_pull_timer_interval": null
+}"#;
+
+    let json_body = serde_json::from_str::<Value>(&json_str).unwrap();
+
+    let res1 = client
+        .post(base_url.to_owned() + "/account/settings")
+        .json(&json_body)
+        .bearer_auth(id_token_1)
+        .send()
+        .await
+        .expect("Failed to send request");
+
+    assert!(res1.status().is_success());
+    */
+}
+
