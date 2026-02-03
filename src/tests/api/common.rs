@@ -10,70 +10,40 @@ use fars::Email;
 use fars::Password;
 use reqwest::Client;
 
-use lazy_static::lazy_static;
-use std::sync::Mutex;
-
-lazy_static! {
-    pub static ref TEST_ENVIRONMENT: Mutex<TestEnvironment> = Mutex::new(TestEnvironment::new());
-}
-
-#[derive(Default)]
 pub struct TestEnvironment {
-    initialized: bool,
-    pub firebase_auth: Option<FirebaseAuth>,
-    pub id_token_signup: Option<String>,
-    pub id_token_main: Option<String>,
-    pub id_token_me_1: Option<String>,
-    pub id_token_me_2: Option<String>,
-    pub id_token_post_settings: Option<String>,
-    pub id_token_get_settings: Option<String>,
-    pub client: Option<Client>,
-    pub api_key: Option<String>,
-    pub base_url: Option<String>,
-    pub timestamp: Option<i64>,
+    pub firebase_auth: FirebaseAuth,
+    pub id_tokens: Vec<String>,
+    pub client: Client,
+    pub api_key: String,
+    pub base_url: String,
+    pub timestamp: i64,
 }
 
 impl TestEnvironment {
-    fn new() -> Self {
-        return TestEnvironment {
-            initialized: false,
-            ..Default::default()
-        };
-    }
-    pub async fn init() -> std::sync::MutexGuard<'static, TestEnvironment> {
-        let mut test_env = TEST_ENVIRONMENT.lock().unwrap();
-        if test_env.initialized {
-            return test_env;
-        }
+    pub async fn init(test_id: &str, count: u32) -> TestEnvironment {
         let firebase_auth = FirebaseAuth::new("nolatabs").await;
-        let ts = Utc::now().timestamp_millis();
-        let id_token = signup_firebase(ts, "signup").await;
-        let id_token_main = signup_firebase(ts, "main").await;
-        let id_token_me_1 = signup_firebase(ts, "me_1").await;
-        let id_token_me_2 = signup_firebase(ts, "me_2").await;
-        let id_token_get_settings = signup_firebase(ts, "get_settings").await;
-        let id_token_post_settings = signup_firebase(ts, "post_settings").await;
+        let timestamp = Utc::now().timestamp_nanos_opt().unwrap();
+        let mut id_tokens = Vec::new();
+        for i in 0..count {
+           id_tokens.push(signup_firebase(timestamp, &format!("{}_{}", test_id, i)).await);
+        }
         let client = Client::new();
         let api_key = env::var("FIREBASE_API_KEY").expect(
             "Could not find FIREBASE_API_KEY environment variable anywhere. Try putting it in .env",
         );
-        test_env.firebase_auth = Some(firebase_auth);
-        test_env.id_token_signup = Some(id_token);
-        test_env.client = Some(client);
-        test_env.api_key = Some(api_key);
-        test_env.base_url = Some(load_base_url());
-        test_env.initialized = true;
-        test_env.timestamp = Some(ts);
-        test_env.id_token_main = Some(id_token_main);
-        test_env.id_token_me_1 = Some(id_token_me_1);
-        test_env.id_token_me_2 = Some(id_token_me_2);
-        test_env.id_token_get_settings = Some(id_token_get_settings);
-        test_env.id_token_post_settings = Some(id_token_post_settings);
-        return test_env;
+        let base_url = load_base_url();
+        return TestEnvironment {
+            firebase_auth,
+            client,
+            id_tokens,
+            base_url,
+            timestamp,
+            api_key,
+        };
     }
 }
 
-async fn signup_firebase(ts: i64, ext: &'static str) -> String {
+async fn signup_firebase<'a>(ts: i64, ext: &'a str) -> String {
     // Load environment variables from .env file
     // Fails if no .env file found
     if dotenv().is_err() {

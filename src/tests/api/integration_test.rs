@@ -1,16 +1,15 @@
 use reqwest::Client;
-use serde::Deserialize;
 use serde_json::Value;
 
 use crate::tests::api::common::*;
 
 #[tokio::test]
 async fn test_signup() {
-    let test_env = TestEnvironment::init().await;
+    let test_env = TestEnvironment::init("signup", 1).await;
 
-    let client = test_env.client.as_ref().unwrap();
-    let base_url = test_env.base_url.as_ref().unwrap();
-    let token_id = test_env.id_token_signup.as_ref().unwrap();
+    let client = &test_env.client;
+    let base_url = &test_env.base_url;
+    let token_id = &test_env.id_tokens[0];
 
     let res = signup(token_id, &client, &base_url).await;
 
@@ -31,13 +30,13 @@ async fn signup(id_token: &str, client: &Client, base_url: &str) -> reqwest::Res
 
 #[tokio::test]
 async fn test_signup_then_me() {
-    let test_env = TestEnvironment::init().await;
+    let test_env = TestEnvironment::init("signup_then_me", 2).await;
 
-    let client = test_env.client.as_ref().unwrap();
-    let base_url = test_env.base_url.as_ref().unwrap();
+    let client = &test_env.client;
+    let base_url = &test_env.base_url;
 
-    let id_token_1 = test_env.id_token_me_1.as_ref().unwrap();
-    let id_token_2 = test_env.id_token_me_2.as_ref().unwrap();
+    let id_token_1 = &test_env.id_tokens[0];
+    let id_token_2 = &test_env.id_tokens[1];
 
     let uid_1 = signup(id_token_1, client, base_url)
         .await
@@ -83,10 +82,10 @@ async fn test_signup_then_me() {
 
 #[tokio::test]
 async fn test_ping() {
-    let test_env = TestEnvironment::init().await;
+    let test_env = TestEnvironment::init("ping", 0).await;
 
-    let client = test_env.client.as_ref().unwrap();
-    let base_url = test_env.base_url.as_ref().unwrap();
+    let client = &test_env.client;
+    let base_url = &test_env.base_url;
 
     let resp = client
         .get(base_url.to_owned() + "/ping")
@@ -99,12 +98,12 @@ async fn test_ping() {
 
 #[tokio::test]
 async fn test_signup_then_get_account_settings() {
-    let test_env = TestEnvironment::init().await;
+    let test_env = TestEnvironment::init("signup_then_get_account_settings", 1).await;
 
-    let client = test_env.client.as_ref().unwrap();
-    let base_url = test_env.base_url.as_ref().unwrap();
+    let client = &test_env.client;
+    let base_url = &test_env.base_url;
 
-    let id_token_1 = test_env.id_token_get_settings.as_ref().unwrap();
+    let id_token_1 = &test_env.id_tokens[0];
 
     signup(id_token_1, client, base_url).await;
 
@@ -127,12 +126,12 @@ async fn test_signup_then_get_account_settings() {
 
 #[tokio::test]
 async fn test_signup_then_post_account_settings() {
-    let test_env = TestEnvironment::init().await;
+    let test_env = TestEnvironment::init("signup_then_post_account_Settings", 1).await;
 
-    let client = test_env.client.as_ref().unwrap();
-    let base_url = test_env.base_url.as_ref().unwrap();
+    let client = &test_env.client;
+    let base_url = &test_env.base_url;
 
-    let id_token_1 = test_env.id_token_post_settings.as_ref().unwrap();
+    let id_token_1 = &test_env.id_tokens[0];
 
     signup(id_token_1, client, base_url).await;
 
@@ -191,4 +190,3 @@ async fn test_signup_then_post_account_settings() {
     assert!(res1.status().is_success());
     */
 }
-
