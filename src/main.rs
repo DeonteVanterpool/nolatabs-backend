@@ -80,6 +80,10 @@ fn db_connection_string(env: &Environment, secret: String) -> String {
 
 #[tokio::main]
 async fn main() {
+     let log_dir = "logs";
+    if !std::path::Path::new(log_dir).exists() {
+        std::fs::create_dir_all(log_dir).unwrap();  // create_dir_all creates parent directories too
+    }
     let log_file = OpenOptions::new()
         .create(true)
         .append(true)
