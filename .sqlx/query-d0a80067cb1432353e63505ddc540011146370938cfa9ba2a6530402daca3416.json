@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE user_settings SET command_style = $2, autopush_option = $3, autopush_duration = COALESCE($4, autopush_duration), autopush_interval_count = COALESCE($5, autopush_interval_count), autopull_option = $6, autopull_duration = COALESCE($7, autopull_duration), autocommit_option = $8, autocommit_duration = COALESCE($9, autocommit_duration), autocommit_interval_count = COALESCE($10, autocommit_interval_count) WHERE user_id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        "Interval",
+        "Int4",
+        "Text",
+        "Interval",
+        "Text",
+        "Interval",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d0a80067cb1432353e63505ddc540011146370938cfa9ba2a6530402daca3416"
+}

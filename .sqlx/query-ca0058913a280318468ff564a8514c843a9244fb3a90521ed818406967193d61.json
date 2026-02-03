@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO user_settings\n(user_id, command_style, autopush_option, autopush_duration, autopush_interval_count, autopull_option, autopull_duration, autocommit_option, autocommit_duration, autocommit_interval_count)\nVALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        "Interval",
+        "Int4",
+        "Text",
+        "Interval",
+        "Text",
+        "Interval",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ca0058913a280318468ff564a8514c843a9244fb3a90521ed818406967193d61"
+}
