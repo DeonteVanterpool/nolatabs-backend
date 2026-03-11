@@ -72,6 +72,15 @@ impl Environment {
 }
 
 fn db_connection_string(env: &Environment, secret: String) -> String {
+    if env::var("DB_PASSWORD").is_ok() {
+        let pw = env::var("DB_PASSWORD").expect(
+            "Could not find DB_USER environment variable anywhere. Try putting it in .env",
+        );
+        return format!(
+            "postgresql://{}:{}@{}:{}/{}",
+            env.database_user, pw, env.database_host, env.database_port, env.database_name
+        );
+    }
     format!(
         "postgresql://{}:{}@{}:{}/{}",
         env.database_user, secret, env.database_host, env.database_port, env.database_name
@@ -120,6 +129,8 @@ async fn main() {
     let env = Environment::initialize();
     let secrets_manager_client = aws_sdk_secretsmanager::Client::new(&config);
     let builder = secrets_manager_client.get_secret_value();
+    let db_password = String::new();
+    /*
     let db_password = String::from(encode(serde_json::from_str::<Value>(
         builder
             .set_secret_id(Some(env.database_secret_arn.clone()))
@@ -129,6 +140,7 @@ async fn main() {
             .secret_string()
             .expect("Error getting secret string"),
     ).expect("Error deserializing secret response")["password"].as_str().expect("Error getting password from secret")));
+    */
 
     let pool = PoolOptions::new().connect(&db_connection_string(&env, db_password.clone())).await.expect(
         &format!("Could not connect to the database. Please check your DATABASE_URL environment variable."

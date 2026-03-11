@@ -26,6 +26,11 @@ urlencoding = "2.1.3"
 lazy_static = "1.5.0"
 tracing = "0.1.44"
 thiserror = "2.0.18"
+async-stripe = { version = "=1.0.0-alpha.8", features = ["uuid"] }
+async-stripe-checkout = { version = "1.0.0-rc.3", features = ["checkout_session"] } 
+async-stripe-core = { version = "1.0.0-rc.3", features = ["customer", "payment_intent"] }
+async-stripe-product = { version = "1.0.0-rc.3", features = ["price", "product"] }
+async-stripe-types = { version = "1.0.0-rc.3" }
 
 [features]
 default = ["integration-test"]
