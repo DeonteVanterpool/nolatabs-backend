@@ -143,15 +143,3 @@ pub async fn post_settings(
         .map_err(|e| e.into());
 }
 
-fn product_name(months: u32, subscription_type: SubscriptionType) -> String {
-    let prefix = if months == 1 {
-        format!("{} Month of ", months)
-    } else {
-        format!("{} Months of ", months)
-    };
-    prefix
-        + match subscription_type {
-            SubscriptionType::SyncCollaborate => "sync collaborate",
-            SubscriptionType::CloudSync => "cloud sync",
-        }
-}

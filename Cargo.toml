@@ -30,6 +30,7 @@ async-stripe = { version = "=1.0.0-alpha.8", features = ["uuid"] }
 async-stripe-checkout = { version = "1.0.0-rc.3", features = ["checkout_session"] } 
 async-stripe-core = { version = "1.0.0-rc.3", features = ["customer", "payment_intent"] }
 async-stripe-product = { version = "1.0.0-rc.3", features = ["price", "product"] }
+async-stripe-webhook = { version = "1.0.0-rc.3", features = ["async-stripe-checkout"] }
 async-stripe-types = { version = "1.0.0-rc.3" }
 
 [features]

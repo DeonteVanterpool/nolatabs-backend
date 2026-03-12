@@ -361,6 +361,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-stripe-webhook"
+version = "1.0.0-rc.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "445bc57b6904c8d2a5c52660b261aec27e8e90013b838152fb3df76532910db6"
+dependencies = [
+ "async-stripe-checkout",
+ "async-stripe-shared",
+ "async-stripe-types",
+ "chrono",
+ "hex",
+ "hmac",
+ "miniserde",
+ "serde",
+ "sha2",
+ "thiserror 2.0.18",
+ "tracing",
+]
+
+[[package]]
 name = "atoi"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2473,6 +2492,7 @@ dependencies = [
  "async-stripe-core",
  "async-stripe-product",
  "async-stripe-types",
+ "async-stripe-webhook",
  "aws-config",
  "aws-sdk-s3",
  "aws-sdk-secretsmanager",

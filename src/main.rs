@@ -1,20 +1,36 @@
-use std::fs::OpenOptions;
-use tower_http::trace::TraceLayer;
-use tracing_subscriber::util::SubscriberInitExt;
-use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
-use crate::{handlers::middleware::{with_authenticated, with_logging}, state::AppState};
-use aws_config::BehaviorVersion;
-use axum::{
-    Router, middleware, response::Redirect, routing::{get, post}
+use crate::models::account::SubscriptionType;
+use crate::{
+    handlers::middleware::{with_authenticated, with_logging},
+    state::AppState,
 };
+use aws_config::BehaviorVersion;
+use axum::body::Body;
+use axum::extract::FromRequest;
+use axum::extract::Request;
+use axum::response::IntoResponse;
+use axum::response::Response;
+use axum::{
+    Router, middleware,
+    response::Redirect,
+    routing::{get, post},
+};
+use core::panic;
 use dotenvy::dotenv;
 use firebase_auth::{FirebaseAuth, FirebaseAuthState};
+use reqwest::StatusCode;
 use serde_json::Value;
 use sqlx::pool::PoolOptions;
-use core::panic;
+use std::fs::OpenOptions;
 use std::{collections::HashMap, future::IntoFuture, net::SocketAddr};
 use std::{env, sync::Arc};
+use stripe_webhook::Event;
+use stripe_webhook::EventObject;
+use stripe_webhook::Webhook;
+use tower_http::trace::TraceLayer;
+use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
 use urlencoding::encode;
+use uuid::Uuid;
 
 pub mod handlers;
 pub mod logic;
@@ -73,9 +89,8 @@ impl Environment {
 
 fn db_connection_string(env: &Environment, secret: String) -> String {
     if env::var("DB_PASSWORD").is_ok() {
-        let pw = env::var("DB_PASSWORD").expect(
-            "Could not find DB_USER environment variable anywhere. Try putting it in .env",
-        );
+        let pw = env::var("DB_PASSWORD")
+            .expect("Could not find DB_USER environment variable anywhere. Try putting it in .env");
         return format!(
             "postgresql://{}:{}@{}:{}/{}",
             env.database_user, pw, env.database_host, env.database_port, env.database_name
@@ -89,14 +104,15 @@ fn db_connection_string(env: &Environment, secret: String) -> String {
 
 #[tokio::main]
 async fn main() {
-     let log_dir = "logs";
+    let log_dir = "logs";
     if !std::path::Path::new(log_dir).exists() {
-        std::fs::create_dir_all(log_dir).unwrap();  // create_dir_all creates parent directories too
+        std::fs::create_dir_all(log_dir).unwrap(); // create_dir_all creates parent directories too
     }
     let log_file = OpenOptions::new()
         .create(true)
         .append(true)
-        .open("logs/app.log").unwrap();
+        .open("logs/app.log")
+        .unwrap();
     // initialize tracing
     let fmt_layer_file = tracing_subscriber::fmt::layer()
         .with_writer(log_file)
@@ -158,7 +174,10 @@ async fn main() {
         .route("/auth/me", get(handlers::auth::me))
         .route("/account/settings", get(handlers::account::get_settings))
         .route("/account/settings", post(handlers::account::post_settings))
-        .route_layer(middleware::from_fn_with_state(state.clone(), with_authenticated))
+        .route_layer(middleware::from_fn_with_state(
+            state.clone(),
+            with_authenticated,
+        ))
         .route("/auth/init", post(handlers::auth::init))
         .route("/ping", get(handlers::status::ping))
         .route_layer(middleware::from_fn_with_state(state.clone(), with_logging))
@@ -185,4 +204,67 @@ async fn main() {
     }
 
     tracing::info!("Shutting down the server...");
+}
+
+struct StripeEvent(Event);
+
+impl<S> FromRequest<S> for StripeEvent
+where
+    String: FromRequest<S>,
+    S: Send + Sync,
+{
+    type Rejection = Response;
+
+    async fn from_request(req: Request<Body>, state: &S) -> Result<Self, Self::Rejection> {
+        let signature = if let Some(sig) = req.headers().get("stripe-signature") {
+            sig.to_owned()
+        } else {
+            return Err(StatusCode::BAD_REQUEST.into_response());
+        };
+
+        let payload = String::from_request(req, state)
+            .await
+            .map_err(IntoResponse::into_response)?;
+
+        Ok(Self(
+            Webhook::construct_event(&payload, signature.to_str().unwrap(), "whsec_xxxxx")
+                .map_err(|_| StatusCode::BAD_REQUEST.into_response())?,
+        ))
+    }
+}
+
+#[axum::debug_handler]
+async fn handle_webhook(StripeEvent(event): StripeEvent) -> Result<(), StatusCode> {
+    match event.data.object {
+        EventObject::CheckoutSessionCompleted(session) => {
+            let meta = session.metadata.ok_or(StatusCode::BAD_REQUEST)?;
+            let user_id = Uuid::parse_str(meta.get("uuid").ok_or(StatusCode::BAD_REQUEST)?)
+                .map_err(|_| StatusCode::BAD_REQUEST)?;
+            let months: u32 = meta
+                .get("months")
+                .ok_or(StatusCode::BAD_REQUEST)?
+                .parse()
+                .map_err(|_| StatusCode::BAD_REQUEST)?;
+            let sub_type = match meta.get("type").ok_or(StatusCode::BAD_REQUEST)?.as_str() {
+                "cloud" => SubscriptionType::CloudSync,
+                "collab" => SubscriptionType::SyncCollaborate,
+                _ => return Err(StatusCode::BAD_REQUEST),
+            };
+            // Extend user's account by `months` of `sub_type`
+            // ...
+            Ok(())
+            // TODO: do something
+        }
+        EventObject::AccountUpdated(account) => {
+            println!(
+                "Received account updated webhook for account: {:?}",
+                account.id
+            );
+            Ok(())
+        }
+        _ => {
+            println!("Unknown event encountered in webhook: {:?}", event.type_);
+            Ok(())
+        }
+    }
 }
