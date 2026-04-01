@@ -1,0 +1,65 @@
+graph TD
+    A[Handlers] --> B[Logic]
+    B --> C[Repository]
+
+    subgraph Handlers
+      subgraph GET
+        H1[Settings]
+        H6[Me]
+        H3[Init]
+        H4[Repositories]
+        H5[Ping]
+        H8[Pull]
+      end
+      subgraph POST
+        H2[Settings]
+        H7[Push]
+      end
+    end
+
+    subgraph Logic
+        subgraph User
+          S1[GetSettings]
+          S7[GetRepositories]
+          S2[UpdateSettings]
+          S5[Initialize]
+          S6[Me]
+        end
+        subgraph Repo
+          S3[Push]
+          S4[Pull]
+        end
+    end
+
+    subgraph Repository
+        R1[UserRepository]
+        R2[SettingsRepository]
+        R3[RepositoryRepository]
+    end
+
+    H4 --> S7
+
+    S7 --> R3
+
+    H1 --> S1
+    H2 --> S2
+
+    S1 --> R1
+    S1 --> R2
+
+    S2 --> R1
+    S2 --> R2
+
+    H6 --> S6
+    H3 --> S5 
+    S5 --> R1
+    S5 --> R2
+
+    H7 --> S3
+    H8 --> S4
+
+    S3 --> R3
+    S4 --> R3
+
+    S6 --> R1
+
