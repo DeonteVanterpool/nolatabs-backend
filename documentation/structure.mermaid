@@ -1,75 +1,85 @@
-graph TD
-    A[Handlers] --> B[Logic]
-    B --> C[Repository]
-
-    subgraph Handlers
-      subgraph GET
-        Handler1[Settings]
-        Handler2[Me]
-        Handler3[Init]
-        Handler4[Repositories]
-        Handler5[Ping]
-        Handler6[Pull]
-        Handler7[Share]
-        Handler8[Backup]
-        Handler9[Restore]
-        Handler10[PaymentInfo]
-      end
-      subgraph POST
-        Handler11[Settings]
-        Handler12[Push]
-      end
-    end
-
-    subgraph Logic
-        subgraph User
-          Logic1[GetSettings]
-          Logic2[GetRepositories]
-          Logic3[UpdateSettings]
-          Logic4[Initialize]
-          Logic5[Me]
-          Logic6[GetPaymentInfo]
-        end
-        subgraph Repo
-          Logic11[Push]
-          Logic7[Pull]
-          Logic8[Share]
-          Logic9[Backup]
-          Logic10[Restore]
-        end
-    end
-
-    subgraph Repository
-        Repository1[UserRepository]
-        Repository2[SettingsRepository]
-        Repository3[RepositoryRepository]
-        Repository3[CommitRepository]
-        Repository4[BlobServerRepository]
-        Repository5[MessagesRepository]
-        Repository6[PaymentRepository]
-    end
-
+---
+config:
+  layout: dagre
+---
+flowchart TB
+ subgraph GET["GET"]
+        Handler1["Settings"]
+        Handler2["Me"]
+        Handler4["Repositories"]
+        Handler5["Ping"]
+        Handler6["Pull"]
+        Handler7["Share"]
+        Handler8["Backup"]
+        Handler10["PaymentInfo"]
+        Handler14["Commits"]
+  end
+ subgraph POST["POST"]
+        Handler11["Settings"]
+        Handler12["Push"]
+        Handler3["Init"]
+        Handler9["Restore"]
+        Handler13["Repositories"]
+  end
+ subgraph Handlers["Handlers"]
+        GET
+        POST
+  end
+ subgraph User["User"]
+        Logic1["GetSettings"]
+        Logic2["GetRepositories"]
+        Logic3["UpdateSettings"]
+        Logic4["Initialize"]
+        Logic5["Me"]
+        Logic6["GetPaymentInfo"]
+  end
+ subgraph Repo["Repo"]
+        Logic11["Push"]
+        Logic7["Pull"]
+        Logic8["Share"]
+        Logic9["Backup"]
+        Logic10["Restore"]
+        Logic12["Commits"]
+  end
+ subgraph Logic["Logic"]
+        User
+        Repo
+  end
+ subgraph Repository["Repository"]
+        Repository1["UserRepository"]
+        Repository2["SettingsRepository"]
+        Repository7["RepoRepository"]
+        Repository3["CommitRepository"]
+        Repository4["BlobServerRepository"]
+        Repository5["UnicastMessageRepository"]
+        Repository9["BroadcastMessageRepository"]
+        Repository6["BillingRepository"]
+        Repository8["MLSClientRepository"]
+  end
+    A["Handlers"] --> B["Logic"]
+    B --> C["Repository"]
     Handler4 --> Logic2
-    Logic2 --> Repository3
+    Logic5 --> Repository1
+    Logic7 --> Repository3 & Repository9 & Repository4
+    Handler14 --> Logic12
+    Logic12 --> Repository3 & Repository9
     Handler1 --> Logic1
     Handler11 --> Logic3
-    Logic1 --> Repository1
     Logic1 --> Repository2
-    Logic3 --> Repository1
     Logic3 --> Repository2
     Handler2 --> Logic5
-    Handler3 --> Logic4 
+    Handler3 --> Logic4
     Logic4 --> Repository1
-    Logic4 --> Repository2
-    Handler12 --> Logic6
+    Handler12 --> Logic11
     Handler6 --> Logic7
-    Logic6 --> Repository3
-    Logic7 --> Repository3
     Logic6 --> Repository6
     Logic9 --> Repository4
     Logic10 --> Repository4
-    Logic11 --> Repository4
-    Logic11 --> Repository5
-    Logic7 --> Repository4
-    Logic7 --> Repository5
-
+    Logic4 --> Repository8
+    Logic11 --> Repository4 & Repository9 & Repository3 
+    Handler7 --> Logic8
+    Handler8 --> Logic9
+    Handler9 --> Logic10
+    Handler10 --> Logic6
+    Logic2 --> Repository7
+    Handler13 --> Logic2

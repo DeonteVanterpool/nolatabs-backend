@@ -65,6 +65,22 @@ pub enum SubscriptionType {
     SyncCollaborate,
 }
 
+impl SubscriptionType {
+    pub fn to_string(&self) -> &'static str {
+        match self {
+            SubscriptionType::CloudSync => "cloud sync",
+            SubscriptionType::SyncCollaborate => "sync collaborate"
+        }
+    }
+    pub fn from_string(s: &str) -> Option<SubscriptionType> {
+        match s {
+            "cloud sync" => Some(SubscriptionType::CloudSync),
+            "sync collaborate" => Some(SubscriptionType::SyncCollaborate),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct SubscriptionInfo {
     pub paid_until: NaiveDateTime,

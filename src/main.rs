@@ -145,7 +145,7 @@ async fn main() {
     let env = Environment::initialize();
     let secrets_manager_client = aws_sdk_secretsmanager::Client::new(&config);
     let builder = secrets_manager_client.get_secret_value();
-    let db_password = String::new();
+    let db_password = env::var("POSTGRES_PASSWORD").unwrap();
     /*
     let db_password = String::from(encode(serde_json::from_str::<Value>(
         builder
@@ -158,9 +158,11 @@ async fn main() {
     ).expect("Error deserializing secret response")["password"].as_str().expect("Error getting password from secret")));
     */
 
-    let pool = PoolOptions::new().connect(&db_connection_string(&env, db_password.clone())).await.expect(
+    /*let pool = PoolOptions::new().connect(&db_connection_string(&env, db_password.clone())).await.expect(
         &format!("Could not connect to the database. Please check your DATABASE_URL environment variable."
     ));
+    */
+    let pool = PoolOptions::new().connect(&env::var("DATABASE_URL").unwrap()).await.unwrap();
 
     sqlx::migrate!("./migrations")
         .run(&pool)
@@ -250,6 +252,8 @@ async fn handle_webhook(StripeEvent(event): StripeEvent) -> Result<(), StatusCod
                 "collab" => SubscriptionType::SyncCollaborate,
                 _ => return Err(StatusCode::BAD_REQUEST),
             };
+            let session_id = session.id;
+            let payment_intent_id = session.payment_intent.as_ref().map(|pi| pi.id());
             // Extend user's account by `months` of `sub_type`
             // ...
             Ok(())
